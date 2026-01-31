@@ -1,7 +1,7 @@
 {
   "name": "@imbios/coding-helper",
   "description": "CLI tool and Claude Code plugin for switching between Z.AI (GLM) and MiniMax API providers",
-  "version": "2.0.6",
+  "version": "2.1.0",
   "author": {
     "name": "Imamuzzaki Abu Salam",
     "email": "imamuzzaki@gmail.com",
