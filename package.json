@@ -38,7 +38,9 @@
     "link": "npm link",
     "postinstall": "bun run format:ws",
     "prepare": "husky",
-    "test": "bun src/cli.ts test"
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "test:watch": "bun test --watch"
   },
   "type": "module"
 }

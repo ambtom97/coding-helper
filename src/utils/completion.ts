@@ -3,22 +3,24 @@ export interface ShellType {
   completions: string;
 }
 
-export const SHELLS: ShellType[] = [
-  {
-    name: "bash",
-    completions: `_imbios_completions() {
+const bashCompletions = `_imbios_completions() {
   local cur prev words cword
   _init_completion || return
-  case "${cur}" in
+  case "\${cur}" in
     --*)
-      COMPREPLY=($(compgen -W "--help --version" -- "${cur}"))
+      COMPREPLY=(\$(compgen -W "--help --version" -- "\${cur}"))
       ;;
     *)
-      COMPREPLY=($(compgen -W "config switch status usage history cost test plugin doctor env models help version" -- "${cur}"))
+      COMPREPLY=(\$(compgen -W "config switch status usage history cost test plugin doctor env models help version" -- "\${cur}"))
       ;;
   esac
 }
-complete -F _imbios_completions imbios`,
+complete -F _imbios_completions imbios`;
+
+export const SHELLS: ShellType[] = [
+  {
+    name: "bash",
+    completions: bashCompletions,
   },
   {
     name: "zsh",

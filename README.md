@@ -198,7 +198,7 @@ eval "$(imbios env export)"
 ## Installation from Source
 
 ```bash
-git clone https://github.com/imbios/coding-helper.git
+git clone https://github.com/ImBIOS/coding-helper.git
 cd coding-helper
 bun install
 bun run build
@@ -235,7 +235,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - **NPM Package**: [@imbios/coding-helper](https://www.npmjs.com/package/@imbios/coding-helper)
-- **Issues**: [GitHub Issues](https://github.com/imbios/coding-helper/issues)
+- **Issues**: [GitHub Issues](https://github.com/ImBIOS/coding-helper/issues)
 - **Author**: [ImBIOS](https://github.com/ImBIOS)
 
 ## Keywords
