@@ -190,8 +190,9 @@ export async function handleUsage(verbose = false): Promise<void> {
         }
       } else {
         // For MiniMax or when no split data available
-        // Display the same percentage used in rotation (percentUsed)
-        console.log(`  Usage: ${Math.round(usage.percentUsed)}%`);
+        // MiniMax shows percentRemaining (what's left), not percentUsed
+        const displayPercent = usage.percentRemaining ?? usage.percentUsed;
+        console.log(`  Usage: ${Math.round(displayPercent)}%`);
 
         // Show details in verbose mode
         if (verbose) {

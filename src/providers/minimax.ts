@@ -66,6 +66,7 @@ export class MiniMaxProvider implements Provider {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s timeout
 
+      // TODO: `groupId` is mandatory, it should not optional, it should throw error or something
       const url = groupId
         ? `https://platform.minimax.io/v1/api/openplatform/coding_plan/remains?GroupId=${groupId}`
         : "https://platform.minimax.io/v1/api/openplatform/coding_plan/remains";
@@ -104,12 +105,15 @@ export class MiniMaxProvider implements Provider {
       const used = modelRemains.current_interval_usage_count;
       const remaining = Math.max(0, limit - used);
       const percentUsed = limit > 0 ? (used / limit) * 100 : 0;
+      const percentRemaining = limit > 0 ? (remaining / limit) * 100 : 0;
 
       return {
         used,
         limit,
         remaining,
         percentUsed,
+        // For MiniMax, display remaining percentage (like web interface)
+        percentRemaining,
       };
     } catch {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };

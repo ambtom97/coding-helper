@@ -21,6 +21,8 @@ export interface UsageStats {
   limit: number;
   remaining: number;
   percentUsed: number;
+  // For MiniMax: percentRemaining shows what's left (for display)
+  percentRemaining?: number;
   // For ZAI provider: separate model and MCP usage
   modelUsage?: UsageStats;
   mcpUsage?: UsageStats;
