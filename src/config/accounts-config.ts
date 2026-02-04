@@ -336,8 +336,12 @@ export function configureRotation(
  * This ensures least-used rotation uses accurate, up-to-date data
  *
  * For rotation comparison:
- * - ZAI: Uses model usage percentage (modelUsage.percentUsed)
- * - MiniMax: Uses usage percentage (same as model usage for MiniMax)
+ * - ZAI: Uses MCP usage percentage (mcpUsage.percentUsed) for MCP rotation
+ * - MiniMax: Uses usage percentage (same as model/MCP usage for MiniMax)
+ *
+ * This ensures MCP usage is balanced across providers since:
+ * - MiniMax: model and MCP share the same quota
+ * - ZAI: model and MCP have separate quotas
  */
 async function fetchAndUpdateUsage(account: AccountConfig): Promise<number> {
   try {
@@ -363,11 +367,11 @@ async function fetchAndUpdateUsage(account: AccountConfig): Promise<number> {
         },
       });
 
-      // For rotation, use model usage percentage
-      // ZAI: use modelUsage.percentUsed if available
-      // MiniMax: use percentUsed (model usage)
-      if (account.provider === "zai" && usage.modelUsage) {
-        return usage.modelUsage.percentUsed;
+      // For rotation, use MCP usage percentage
+      // ZAI: use mcpUsage.percentUsed (MCP rotation)
+      // MiniMax: use percentUsed (model/MCP combined)
+      if (account.provider === "zai" && usage.mcpUsage) {
+        return usage.mcpUsage.percentUsed;
       }
       return usage.percentUsed;
     }

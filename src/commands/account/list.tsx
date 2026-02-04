@@ -1,6 +1,9 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import * as accountsConfig from "../../config/accounts-config.js";
+import {
+  getActiveAccount,
+  listAccounts,
+} from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Info, Section } from "../../ui/index.js";
 
@@ -9,8 +12,8 @@ export default class AccountList extends BaseCommand<typeof AccountList> {
   static examples = ["<%= config.bin %> account list"];
 
   async run(): Promise<void> {
-    const accounts = accountsConfig.listAccounts();
-    const activeAccount = accountsConfig.getActiveAccount();
+    const accounts = listAccounts();
+    const activeAccount = getActiveAccount();
 
     await this.renderApp(
       <AccountListUI accounts={accounts} activeAccount={activeAccount} />
