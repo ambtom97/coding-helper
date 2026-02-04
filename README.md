@@ -5,43 +5,47 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Bun](https://img.shields.io/badge/Bun-1.2.0+-black?logo=bun)](https://bun.sh)
 
-A powerful **CLI tool** and **Claude Code plugin** for seamless management of Z.AI (GLM) and MiniMax API providers. Switch between providers, manage multiple accounts, track usage, rotate API keys, and monitor quotas directly from your terminal.
+A powerful **CLI tool** and **Agent SDK wrapper** for seamless management of Z.AI (GLM) and MiniMax API providers. Switch between providers, manage multiple accounts, track usage, rotate API keys, and use with Claude Code or Claude Agent SDK directly from your code.
 
 ## What is coding-helper?
 
-coding-helper is a developer utility that enables Claude Code users to switch between Z.AI (GLM) and MiniMax API providers without code changes. It provides a unified CLI interface for:
+coding-helper is a developer utility that enables Claude Code users to switch between Z.AI (GLM) and MiniMax API providers without code changes. It provides:
 
 - **Provider switching** - Toggle between Z.AI and MiniMax instantly
 - **Multi-account management** - Configure and switch between multiple API accounts
 - **API key rotation** - Automatic rotation with configurable strategies
 - **Usage tracking** - Monitor quotas, costs, and consumption in real-time
-- **Web dashboard** - Visual interface for monitoring (v2.0+)
+- **Agent SDK integration** - Use auto-rotation directly in your code
+- **Claude Code wrapper** - Spawn Claude with automatic provider switching
 
 ## Features
 
 ### Provider Management
+
 | Feature | Description |
 |---------|-------------|
 | **Unified CLI** | Configure and switch providers with simple commands |
 | **Interactive Setup** | Guided configuration wizard |
 | **Multi-Account Support** | Manage multiple accounts per provider |
-| **API Key Rotation** | Round-robin, least-used, or priority strategies |
+| **API Key Rotation** | Round-robin, least-used, priority, or random strategies |
 
 ### Monitoring & Tracking
+
 | Feature | Description |
 |---------|-------------|
-| **Real-time Usage** | Monitor API consumption instantly |
+| **Real-time Usage** | Monitor API consumption from provider APIs |
 | **Usage History** | Visualize patterns over last 30 days |
 | **Cost Estimation** | Calculate costs for different models |
 | **Alert System** | Get notified when approaching limits |
 
 ### Developer Experience
+
 | Feature | Description |
 |---------|-------------|
-| **Shell Completion** | Full tab completion for bash, zsh, fish |
-| **Claude Code Plugin** | Native `/imbios:` slash commands |
-| **Configuration Profiles** | Switch between configurations |
-| **Web Dashboard** | Visual monitoring on port 3456 |
+| **Agent SDK Wrapper** - Use auto-rotation in your code with `@imbios/coding-helper/sdk` |
+| **Claude Code Integration** - Spawn `claude` command with auto-rotation |
+| **Shell Completion** - Full tab completion for bash, zsh, fish |
+| **Web Dashboard** - Visual monitoring on port 3456 |
 
 ## Quick Start
 
@@ -58,34 +62,145 @@ bun install -g @imbios/coding-helper
 npx @imbios/coding-helper config
 ```
 
-### Basic Usage
+### Basic CLI Usage
 
 ```bash
-# Configure API providers
-imbios config
+# Add API accounts (uses provider's default model automatically)
+cohe account add
 
-# Switch between providers
-imbios switch zai      # Use Z.AI (GLM)
-imbios switch minimax  # Use MiniMax
+# Switch between accounts
+cohe account switch <account-id>
 
 # Check status
-imbios status
+cohe status
 
 # View usage
-imbios usage
+cohe usage
 ```
 
-### Claude Code Integration
+### Using with Claude Code
 
-After installation, use slash commands in Claude Code:
+The `cohe claude` command spawns Claude Code with automatic provider/account rotation:
 
+```bash
+# Run claude with auto-rotation
+cohe claude
+
+# Pass through any claude arguments
+cohe claude --continue
+cohe claude --help
 ```
-/imbios:status   - Show current provider and API status
-/imbios:usage    - Query usage for active provider
-/imbios:switch   - Switch between providers
-/imbios:models   - List available models
-/imbios:test     - Test API connection
+
+Behind the scenes, this sets all required environment variables according to official documentation:
+
+**For Z.AI:**
+```bash
+ANTHROPIC_AUTH_TOKEN=<zai_api_key>
+ANTHROPIC_BASE_URL=https://api.z.ai/api/anthropic
+ANTHROPIC_DEFAULT_OPUS_MODEL=GLM-4.7
+ANTHROPIC_DEFAULT_SONNET_MODEL=GLM-4.7
+ANTHROPIC_DEFAULT_HAIKU_MODEL=GLM-4.5-Air
+ANTHROPIC_SMALL_FAST_MODEL=GLM-4.5-Air
 ```
+
+**For MiniMax:**
+```bash
+ANTHROPIC_AUTH_TOKEN=<minimax_api_key>
+ANTHROPIC_BASE_URL=https://api.minimax.io/anthropic
+ANTHROPIC_DEFAULT_OPUS_MODEL=MiniMax-M2.1
+ANTHROPIC_DEFAULT_SONNET_MODEL=MiniMax-M2.1
+ANTHROPIC_DEFAULT_HAIKU_MODEL=MiniMax-M2.1
+ANTHROPIC_SMALL_FAST_MODEL=MiniMax-M2.1
+```
+
+## Agent SDK Integration
+
+Use the auto-rotation feature directly in your code with the Agent SDK wrapper:
+
+### Installation
+
+```bash
+npm install @imbios/coding-helper @anthropic-ai/claude-agent-sdk
+```
+
+### Basic Usage
+
+```typescript
+import { query } from "@imbios/coding-helper/sdk";
+
+// Automatically rotates between accounts on each call
+for await (const message of query({
+  prompt: "Fix the bug in auth.py",
+  options: {
+    allowedTools: ["Read", "Edit", "Bash"],
+    logRotation: true  // Log when rotation occurs
+  }
+})) {
+  if (message.type === "result") {
+    console.log(message.result);
+  }
+}
+```
+
+### Advanced Usage
+
+```typescript
+import {
+  getAutoRotatedEnv,
+  performAutoRotation,
+  getActiveCredentials
+} from "@imbios/coding-helper/sdk";
+import { query as sdkQuery } from "@anthropic-ai/claude-agent-sdk";
+
+// Option 1: Get rotated environment and use with original SDK
+async function runWithRotation() {
+  await performAutoRotation(); // Manually trigger rotation
+  const env = await getAutoRotatedEnv(); // Get env vars for active account
+  
+  for await (const message of sdkQuery({
+    prompt: "Write a React component",
+    options: { env }
+  })) {
+    // Handle messages...
+  }
+}
+
+// Option 2: Check current credentials before running
+function checkBeforeRun() {
+  const creds = getActiveCredentials();
+  if (!creds) {
+    console.error("No accounts configured!");
+    return;
+  }
+  
+  console.log(`Using: ${creds.provider} - ${creds.accountName}`);
+  console.log(`Model: ${creds.model}`);
+}
+```
+
+### Rotation Strategies
+
+Configure rotation strategy with:
+
+```bash
+# Enable rotation with specific strategy
+cohe auto enable round-robin
+cohe auto enable least-used --cross-provider
+cohe auto enable random
+cohe auto enable priority
+
+# Disable rotation
+cohe auto disable
+
+# Check rotation status
+cohe auto status
+```
+
+**Available strategies:**
+- `round-robin` - Cycle through accounts in order
+- `least-used` - Pick account with lowest API usage (fetches real data from provider)
+- `priority` - Pick highest priority account
+- `random` - Randomly select an account
 
 ## Supported Models
 
@@ -100,8 +215,7 @@ After installation, use slash commands in Claude Code:
 
 | Model | Tier | Use Case |
 |-------|------|----------|
-| `MiniMax-M2.1` | Opus/Sonnet | Latest flagship model |
-| `MiniMax-M2` | Haiku | Efficient, cost-effective |
+| `MiniMax-M2.1` | All | Latest flagship model |
 
 ## Commands Reference
 
@@ -109,99 +223,151 @@ After installation, use slash commands in Claude Code:
 
 | Command | Description |
 |---------|-------------|
-| `imbios config` | Interactive provider configuration |
-| `imbios switch <provider>` | Switch active provider (zai/minimax) |
-| `imbios status` | Show current provider and status |
-| `imbios usage` | Query usage statistics |
-| `imbios history` | Show usage history (30 days) |
-| `imbios cost [model]` | Estimate costs for models |
-| `imbios test` | Test API connection |
-| `imbios doctor` | Diagnose configuration issues |
+| `cohe account add` | Add new API account (auto-selects default model) |
+| `cohe account list` | List all configured accounts |
+| `cohe account switch <id>` | Switch to specific account |
+| `cohe account remove <id>` | Remove an account |
+| `cohe status` | Show current provider and status |
+| `cohe usage` | Query usage statistics from API |
+| `cohe history` | Show usage history (30 days) |
+| `cohe test` | Test API connection |
 
-### Multi-Account Management (v2.0)
+### Auto-Rotation Commands
 
 | Command | Description |
 |---------|-------------|
-| `imbios account list` | List all configured accounts |
-| `imbios account add` | Add new API account |
-| `imbios account switch <id>` | Switch to specific account |
-| `imbios account remove <id>` | Remove an account |
+| `cohe auto enable [strategy]` | Enable auto-rotation |
+| `cohe auto disable` | Disable auto-rotation |
+| `cohe auto status` | Show rotation status |
+| `cohe auto rotate` | Manually trigger rotation |
 
-### API Key Rotation (v2.0)
+### Provider Commands (Legacy)
 
-```bash
-# Rotate to next available key
-imbios rotate zai
-imbios rotate minimax
+| Command | Description |
+|---------|-------------|
+| `cohe config` | Interactive provider configuration |
+| `cohe switch <provider>` | Switch active provider (zai/minimax) |
+
+### Other Commands
+
+| Command | Description |
+|---------|-------------|
+| `cohe claude [args...]` | Spawn Claude with auto-rotation |
+| `cohe dashboard start [port]` | Start web dashboard |
+| `cohe alert list` | List usage alerts |
+| `cohe doctor` | Diagnose configuration issues |
+| `cohe completion <shell>` | Generate shell completion |
+
+## Configuration
+
+### Configuration File
+
+All accounts and settings are stored in `~/.claude/imbios.json`:
+
+```json
+{
+  "version": "2.0.0",
+  "accounts": {
+    "acc_123": {
+      "id": "acc_123",
+      "name": "my-zai-account",
+      "provider": "zai",
+      "apiKey": "sk-...",
+      "baseUrl": "https://api.z.ai/api/anthropic",
+      "defaultModel": "GLM-4.7",
+      "priority": 0,
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "usage": {
+        "used": 0.5,
+        "limit": 100,
+        "lastUpdated": "2025-01-01T12:00:00.000Z"
+      }
+    }
+  },
+  "activeAccountId": "acc_123",
+  "rotation": {
+    "enabled": true,
+    "strategy": "round-robin",
+    "crossProvider": true
+  }
+}
 ```
 
-### Web Dashboard (v2.0)
+### Environment Variables
+
+coding-helper respects the following environment variables:
+
+- `ZAI_API_KEY` - Z.AI API key (for legacy provider config)
+- `MINIMAX_API_KEY` - MiniMax API key (for legacy provider config)
+- `IMBIOS_CONFIG_PATH` - Custom path to config file
+
+## Examples
+
+### Example 1: Basic Multi-Account Setup
 
 ```bash
-# Start dashboard (default port 3456)
-imbios dashboard start
+# Add multiple accounts
+cohe account add
+# Enter name: work-zai
+# Select provider: Z.AI (zai)
+# Enter API key: sk-...
+# (Model is auto-selected based on provider)
 
-# Custom port
-imbios dashboard start 8080
+cohe account add
+# Enter name: personal-minimax
+# Select provider: MiniMax
+# Enter API key: sk-...
 
-# Check status
-imbios dashboard status
+# Enable cross-provider rotation
+cohe auto enable random --cross-provider
+
+# Use with Claude Code
+cohe claude
 ```
 
-### Alerts (v2.0)
+### Example 2: Using with Agent SDK
 
-```bash
-# List alerts
-imbios alert list
+```typescript
+// my-script.ts
+import { query } from "@imbios/coding-helper/sdk";
 
-# Add new alert
-imbios alert add
+async function main() {
+  for await (const message of query({
+    prompt: "Analyze this codebase and suggest improvements",
+    options: {
+      allowedTools: ["Read", "Grep", "Bash"],
+      logRotation: true
+    }
+  })) {
+    if (message.type === "result") {
+      console.log(message.result);
+    }
+  }
+}
 
-# Enable/disable alerts
-imbios alert enable <id>
-imbios alert disable <id>
+main();
 ```
 
-### Shell Completion
-
+Run with:
 ```bash
-# Generate completion for your shell
-imbios completion bash >> ~/.bashrc
-imbios completion zsh >> ~/.zshrc
-imbios completion fish > ~/.config/fish/completions/imbios.fish
+bun run my-script.ts
 ```
 
-## Environment Variables
-
-When active, coding-helper sets:
+### Example 3: Priority-Based Rotation
 
 ```bash
-ANTHROPIC_AUTH_TOKEN=<provider_api_key>
-ANTHROPIC_BASE_URL=<provider_base_url>
-ANTHROPIC_MODEL=<default_model>
-API_TIMEOUT_MS=3000000
-```
+# Add accounts with different priorities
+cohe account add  # priority 0 (default)
+# Edit ~/.claude/imbios.json to set priorities:
+# "priority": 10  # High priority account
+# "priority": 1   # Medium priority account
+# "priority": 0   # Low priority (fallback)
 
-Export for shell integration:
+# Enable priority-based rotation
+cohe auto enable priority
 
-```bash
-eval "$(imbios env export)"
-```
-
-## Configuration Files
-
-- **Primary**: `~/.claude/imbios.json`
-- **Profiles**: `~/.claude/imbios-profiles.json`
-- **v2.0 Config**: `~/.claude/imbios-v2.json`
-
-## Installation from Source
-
-```bash
-git clone https://github.com/ImBIOS/coding-helper.git
-cd coding-helper
-bun install
-bun run build
-./bin/imbios.js config
+# Now it will always use the highest priority account
 ```
 
 ## Requirements
@@ -214,7 +380,7 @@ bun run build
 
 - **Language**: TypeScript (ES2022)
 - **Runtime**: Bun (primary), Node.js (fallback)
-- **CLI Framework**: Inquirer.js
+- **UI Framework**: Ink (React for CLI)
 - **Code Quality**: Biome with Ultracite preset
 
 ## Contributing
@@ -224,12 +390,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+4. Push to the branch (`git push origin feature-amazing-feature`)
 5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
@@ -239,4 +401,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Keywords
 
-anthropic-api, claude-code, glm, minimax, api-client, cli-tool, provider-management, api-key-rotation, usage-tracking, shell-completion, multi-account, developer-tools, ai-assistant, terminal-tool, zai-api, glmmodel, bun, typescript
+anthropic-api, claude-code, claude-agent-sdk, glm, minimax, api-client, cli-tool, provider-management, api-key-rotation, usage-tracking, auto-rotation, multi-account, developer-tools, ai-assistant, terminal-tool, zai-api, glmmodel, bun, typescript

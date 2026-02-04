@@ -1,3 +1,4 @@
+import { testAnthropicConnection } from "../utils/anthropic-connection-test.js";
 import type {
   ModelMapping,
   Provider,
@@ -20,12 +21,12 @@ export class ZAIProvider implements Provider {
       apiKey: process.env.ZAI_API_KEY || "",
       baseUrl: process.env.ZAI_BASE_URL || "https://api.z.ai/api/anthropic",
       defaultModel: "GLM-4.7",
-      models: ["GLM-4.7", "GLM-4.5-Air", "GLM-4.5-Air-X"],
+      models: ["GLM-4.7", "GLM-4.5-Air"],
     };
   }
 
   getModels(): string[] {
-    return ["GLM-4.7", "GLM-4.5-Air", "GLM-4.5-Air-X"];
+    return ["GLM-4.7", "GLM-4.5-Air"];
   }
 
   getDefaultModel(type: "opus" | "sonnet" | "haiku"): string {
@@ -38,53 +39,95 @@ export class ZAIProvider implements Provider {
 
   async testConnection(): Promise<boolean> {
     const config = this.getConfig();
-    if (!config.apiKey) {
-      return false;
-    }
-
-    try {
-      const response = await fetch(`${config.baseUrl}/messages`, {
-        method: "HEAD",
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
-      return response.ok || response.status === 405;
-    } catch {
-      return false;
-    }
+    return testAnthropicConnection(
+      {
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+        model: config.defaultModel,
+      },
+      "ZAI"
+    );
   }
 
-  async getUsage(): Promise<UsageStats> {
+  async getUsage(options?: UsageOptions): Promise<UsageStats> {
     const config = this.getConfig();
-    if (!config.apiKey) {
+    const apiKey = options?.apiKey || config.apiKey;
+
+    if (!apiKey) {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
     }
 
     try {
-      const response = await fetch(`${config.baseUrl}/credits`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s timeout
+
+      const response = await fetch(
+        "https://api.z.ai/api/monitor/usage/quota/limit",
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       }
 
-      const data = (await response.json()) as { used?: number; limit?: number };
-      const used = data.used || 0;
-      const limit = data.limit || 0;
-      const remaining = Math.max(0, limit - used);
+      const data = (await response.json()) as {
+        code: number;
+        data?: {
+          limits?: Array<{
+            type: string;
+            usage: number;
+            currentValue: number;
+            remaining: number;
+            percentage: number;
+          }>;
+        };
+      };
 
+      // Get both TIME_LIMIT (MCP usage) and TOKENS_LIMIT (model usage)
+      const timeLimit = data.data?.limits?.find(
+        (limit) => limit.type === "TIME_LIMIT"
+      );
+      const tokenLimit = data.data?.limits?.find(
+        (limit) => limit.type === "TOKENS_LIMIT"
+      );
+
+      if (!(timeLimit || tokenLimit)) {
+        return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+      }
+
+      // Return separate model and MCP usage for ZAI
+      const modelUsage: UsageStats = tokenLimit
+        ? {
+            used: tokenLimit.currentValue,
+            limit: tokenLimit.usage,
+            remaining: tokenLimit.remaining,
+            percentUsed: tokenLimit.percentage,
+          }
+        : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+
+      const mcpUsage: UsageStats = timeLimit
+        ? {
+            used: timeLimit.currentValue,
+            limit: timeLimit.usage,
+            remaining: timeLimit.remaining,
+            percentUsed: timeLimit.percentage,
+          }
+        : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+
+      // For overall usage, use model usage as primary (for backward compatibility)
       return {
-        used,
-        limit,
-        remaining,
-        percentUsed: limit > 0 ? (used / limit) * 100 : 0,
+        ...modelUsage,
+        modelUsage,
+        mcpUsage,
       };
     } catch {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };

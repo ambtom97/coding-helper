@@ -1,5 +1,9 @@
 import * as http from "node:http";
-import { getActiveAccount, listAccounts, loadConfigV2 } from "../config/v2";
+import {
+  getActiveAccount,
+  listAccounts,
+  loadConfigV2,
+} from "../config/accounts-config";
 
 const DASHBOARD_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -143,7 +147,7 @@ export function startDashboard(): void {
   const config = loadConfigV2();
 
   if (!config.dashboard.enabled) {
-    console.log("Dashboard is disabled. Enable with: imbios dashboard start");
+    console.log("Dashboard is disabled. Enable with: cohe dashboard start");
     return;
   }
 

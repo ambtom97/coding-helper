@@ -28,7 +28,7 @@ export interface UsageRecord {
   limit: number;
 }
 
-const CONFIG_PATH = path.join(os.homedir(), ".claude", "imbios.json");
+const CONFIG_PATH = path.join(os.homedir(), ".claude", "cohe.json");
 
 export function getConfigDir(): string {
   return path.join(os.homedir(), ".claude");
@@ -116,14 +116,14 @@ export function recordUsage(
     config.history[provider] = [];
   }
 
-  const existing = config.history[provider]!.find((r) => r.date === today);
+  const existing = config.history[provider]?.find((r) => r.date === today);
   if (existing) {
     existing.used = used;
     existing.limit = limit;
   } else {
-    config.history[provider]!.push({ date: today, used, limit });
+    config.history[provider]?.push({ date: today, used, limit });
     // Keep only last 30 days
-    config.history[provider] = config.history[provider]!.slice(-30);
+    config.history[provider] = config.history[provider]?.slice(-30);
   }
 
   saveConfig(config);

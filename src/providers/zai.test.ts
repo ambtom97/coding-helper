@@ -45,12 +45,12 @@ describe("ZAIProvider", () => {
       if (originalApiKey !== undefined) {
         process.env.ZAI_API_KEY = originalApiKey;
       } else {
-        delete process.env.ZAI_API_KEY;
+        process.env.ZAI_API_KEY = undefined;
       }
       if (originalBaseUrl !== undefined) {
         process.env.ZAI_BASE_URL = originalBaseUrl;
       } else {
-        delete process.env.ZAI_BASE_URL;
+        process.env.ZAI_BASE_URL = undefined;
       }
     });
 
@@ -68,7 +68,6 @@ describe("ZAIProvider", () => {
       const config = provider.getConfig();
       expect(config.models).toContain("GLM-4.7");
       expect(config.models).toContain("GLM-4.5-Air");
-      expect(config.models).toContain("GLM-4.5-Air-X");
     });
   });
 
@@ -78,7 +77,6 @@ describe("ZAIProvider", () => {
       expect(Array.isArray(models)).toBe(true);
       expect(models).toContain("GLM-4.7");
       expect(models).toContain("GLM-4.5-Air");
-      expect(models).toContain("GLM-4.5-Air-X");
     });
   });
 
@@ -111,7 +109,7 @@ describe("ZAIProvider", () => {
 
   describe("testConnection", () => {
     it("should return false when api key is not set", async () => {
-      delete process.env.ZAI_API_KEY;
+      process.env.ZAI_API_KEY = undefined;
       const result = await provider.testConnection();
       expect(result).toBe(false);
     });
@@ -130,19 +128,37 @@ describe("ZAIProvider", () => {
       globalThis.fetch = originalFetch;
     });
 
-    it("should return true for status 405 (method not allowed)", async () => {
+    it("should return true when Anthropic SDK messages.create succeeds", async () => {
       process.env.ZAI_API_KEY = "test-key";
 
-      const mockResponse = {
-        ok: false,
-        status: 405,
+      const mockMessageResponse = {
+        id: "msg_test",
+        type: "message",
+        role: "assistant" as const,
+        content: [{ type: "text" as const, text: "Hi" }],
+        model: "GLM-4.7",
+        stop_reason: "end_turn" as const,
+        usage: { input_tokens: 1, output_tokens: 1 },
       };
 
       const originalFetch = globalThis.fetch;
-      globalThis.fetch = (() =>
-        Promise.resolve(
-          mockResponse as unknown as Response
-        )) as unknown as typeof fetch;
+      globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        const u =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : input.toString();
+        if (u.includes("v1/messages") || u.includes("/messages")) {
+          return Promise.resolve(
+            new Response(JSON.stringify(mockMessageResponse), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+          );
+        }
+        return originalFetch(input as RequestInfo, init);
+      }) as typeof fetch;
 
       const result = await provider.testConnection();
       expect(result).toBe(true);
@@ -153,7 +169,7 @@ describe("ZAIProvider", () => {
 
   describe("getUsage", () => {
     it("should return zero stats when api key is not set", async () => {
-      delete process.env.ZAI_API_KEY;
+      process.env.ZAI_API_KEY = undefined;
       const usage = await provider.getUsage();
 
       expect(usage.used).toBe(0);
@@ -184,13 +200,41 @@ describe("ZAIProvider", () => {
       globalThis.fetch = originalFetch;
     });
 
-    it("should parse usage from response", async () => {
+    it("should parse usage from Z.AI API response", async () => {
       process.env.ZAI_API_KEY = "test-key";
 
       const mockResponse = {
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ used: 750, limit: 1000 }),
+        json: () =>
+          Promise.resolve({
+            code: 200,
+            msg: "Operation successful",
+            data: {
+              limits: [
+                {
+                  type: "TOKENS_LIMIT",
+                  unit: 3,
+                  number: 5,
+                  usage: 40_000_000,
+                  currentValue: 1_353_092,
+                  remaining: 38_646_908,
+                  percentage: 3,
+                  nextResetTime: 1_770_016_513_934,
+                },
+                {
+                  type: "TIME_LIMIT",
+                  unit: 5,
+                  number: 1,
+                  usage: 100,
+                  currentValue: 15,
+                  remaining: 85,
+                  percentage: 15,
+                },
+              ],
+            },
+            success: true,
+          }),
       };
 
       const originalFetch = globalThis.fetch;
@@ -201,10 +245,52 @@ describe("ZAIProvider", () => {
 
       const usage = await provider.getUsage();
 
-      expect(usage.used).toBe(750);
-      expect(usage.limit).toBe(1000);
-      expect(usage.remaining).toBe(250);
-      expect(usage.percentUsed).toBe(75);
+      expect(usage.used).toBe(1_353_092);
+      expect(usage.limit).toBe(40_000_000);
+      expect(usage.remaining).toBe(38_646_908);
+      expect(usage.percentUsed).toBe(3);
+
+      globalThis.fetch = originalFetch;
+    });
+
+    it("should handle missing TOKENS_LIMIT in response", async () => {
+      process.env.ZAI_API_KEY = "test-key";
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            code: 200,
+            msg: "Operation successful",
+            data: {
+              limits: [
+                {
+                  type: "TIME_LIMIT",
+                  unit: 5,
+                  number: 1,
+                  usage: 100,
+                  currentValue: 15,
+                  remaining: 85,
+                  percentage: 15,
+                },
+              ],
+            },
+            success: true,
+          }),
+      };
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (() =>
+        Promise.resolve(
+          mockResponse as unknown as Response
+        )) as unknown as typeof fetch;
+
+      const usage = await provider.getUsage();
+
+      expect(usage.used).toBe(0);
+      expect(usage.limit).toBe(0);
+      expect(usage.percentUsed).toBe(0);
 
       globalThis.fetch = originalFetch;
     });
@@ -229,28 +315,6 @@ describe("ZAIProvider", () => {
       expect(usage.used).toBe(0);
       expect(usage.limit).toBe(0);
       expect(usage.percentUsed).toBe(0);
-
-      globalThis.fetch = originalFetch;
-    });
-
-    it("should not return negative remaining", async () => {
-      process.env.ZAI_API_KEY = "test-key";
-
-      const mockResponse = {
-        ok: true,
-        status: 200,
-        json: () => Promise.resolve({ used: 1500, limit: 1000 }),
-      };
-
-      const originalFetch = globalThis.fetch;
-      globalThis.fetch = (() =>
-        Promise.resolve(
-          mockResponse as unknown as Response
-        )) as unknown as typeof fetch;
-
-      const usage = await provider.getUsage();
-
-      expect(usage.remaining).toBe(0);
 
       globalThis.fetch = originalFetch;
     });

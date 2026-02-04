@@ -1,14 +1,16 @@
+import { testAnthropicConnection } from "../utils/anthropic-connection-test.js";
 import type {
   ModelMapping,
   Provider,
   ProviderConfig,
+  UsageOptions,
   UsageStats,
 } from "./base";
 
 const MINIMAX_MODEL_MAPPING: ModelMapping = {
   opus: "MiniMax-M2.1",
   sonnet: "MiniMax-M2.1",
-  haiku: "MiniMax-M2",
+  haiku: "MiniMax-M2.1",
 };
 
 export class MiniMaxProvider implements Provider {
@@ -21,12 +23,12 @@ export class MiniMaxProvider implements Provider {
       baseUrl:
         process.env.MINIMAX_BASE_URL || "https://api.minimax.io/anthropic",
       defaultModel: "MiniMax-M2.1",
-      models: ["MiniMax-M2.1", "MiniMax-M2"],
+      models: ["MiniMax-M2.1"],
     };
   }
 
   getModels(): string[] {
-    return ["MiniMax-M2.1", "MiniMax-M2"];
+    return ["MiniMax-M2.1"];
   }
 
   getDefaultModel(type: "opus" | "sonnet" | "haiku"): string {
@@ -39,53 +41,75 @@ export class MiniMaxProvider implements Provider {
 
   async testConnection(): Promise<boolean> {
     const config = this.getConfig();
-    if (!config.apiKey) {
-      return false;
-    }
-
-    try {
-      const response = await fetch(`${config.baseUrl}/messages`, {
-        method: "HEAD",
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/json",
-        },
-      });
-      return response.ok || response.status === 405;
-    } catch {
-      return false;
-    }
+    return testAnthropicConnection(
+      {
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+        model: config.defaultModel,
+      },
+      "MiniMax"
+    );
   }
 
-  async getUsage(): Promise<UsageStats> {
+  async getUsage(options?: UsageOptions): Promise<UsageStats> {
     const config = this.getConfig();
-    if (!config.apiKey) {
+    const apiKey = options?.apiKey || config.apiKey;
+
+    if (!apiKey) {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
     }
 
+    // Get groupId from options, account config, or environment variable
+    const groupId = options?.groupId || process.env.MINIMAX_GROUP_ID || "";
+
     try {
-      const response = await fetch(`${config.baseUrl}/credits`, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10_000); // 10s timeout
+
+      const url = groupId
+        ? `https://platform.minimax.io/v1/api/openplatform/coding_plan/remains?GroupId=${groupId}`
+        : "https://platform.minimax.io/v1/api/openplatform/coding_plan/remains";
+
+      const response = await fetch(url, {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${config.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       }
 
-      const data = (await response.json()) as { used?: number; limit?: number };
-      const used = data.used || 0;
-      const limit = data.limit || 0;
+      const data = (await response.json()) as {
+        model_remains?: Array<{
+          current_interval_total_count: number;
+          current_interval_usage_count: number;
+          model_name: string;
+        }>;
+        base_resp?: { status_code: number };
+      };
+
+      // Check if request was successful
+      if (data.base_resp?.status_code !== 0 || !data.model_remains?.[0]) {
+        return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+      }
+
+      const modelRemains = data.model_remains[0];
+      const limit = modelRemains.current_interval_total_count;
+      const used = modelRemains.current_interval_usage_count;
       const remaining = Math.max(0, limit - used);
+      const percentUsed = limit > 0 ? (used / limit) * 100 : 0;
 
       return {
         used,
         limit,
         remaining,
-        percentUsed: limit > 0 ? (used / limit) * 100 : 0,
+        percentUsed,
       };
     } catch {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };

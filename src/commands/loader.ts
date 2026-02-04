@@ -1,6 +1,9 @@
 import {
   handleAccount,
   handleAlert,
+  handleAuto,
+  handleClaude,
+  handleCompare,
   handleCompletion,
   handleConfig,
   handleCost,
@@ -9,6 +12,7 @@ import {
   handleEnv,
   handleHelp,
   handleHistory,
+  handleHooks,
   handleMcp,
   handleModels,
   handlePlugin,
@@ -24,14 +28,18 @@ import {
 export {
   handleAccount,
   handleAlert,
+  handleAuto,
+  handleClaude,
   handleCompletion,
   handleConfig,
+  handleCompare,
   handleCost,
   handleDashboard,
   handleDoctor,
   handleEnv,
   handleHelp,
   handleHistory,
+  handleHooks,
   handleMcp,
   handleModels,
   handlePlugin,
@@ -45,6 +53,9 @@ export {
 };
 
 const COMMANDS: Record<string, (args?: string[]) => Promise<void>> = {
+  auto: (args) => handleAuto(args ?? []),
+  claude: (args) => handleClaude(args ?? []),
+  compare: (args) => handleCompare(args ?? []),
   config: handleConfig,
   completion: (args) => handleCompletion(args?.[0]),
   switch: (args) => handleSwitch(args ?? []),
@@ -63,6 +74,7 @@ const COMMANDS: Record<string, (args?: string[]) => Promise<void>> = {
   dashboard: (args) => handleDashboard(args ?? []),
   alert: (args) => handleAlert(args ?? []),
   mcp: (args) => handleMcp(args ?? []),
+  hooks: (args) => handleHooks(args ?? []),
   help: handleHelp,
   version: handleVersion,
 };

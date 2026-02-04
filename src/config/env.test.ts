@@ -6,7 +6,7 @@ describe("env", () => {
     it("should return env file path in .claude directory", () => {
       const envPath = getEnvPath();
       expect(envPath).toContain(".claude");
-      expect(envPath).toContain("imbios.env");
+      expect(envPath).toContain("cohe.env");
     });
   });
 

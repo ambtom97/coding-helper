@@ -1,0 +1,79 @@
+import { Box, Text, useApp } from "ink";
+import { useEffect } from "react";
+import { BaseCommand } from "../oclif/base.tsx";
+
+export default class Help extends BaseCommand<typeof Help> {
+  static description = "Show help information";
+  static examples = ["<%= config.bin %> help"];
+
+  async run(): Promise<void> {
+    const pkg = await import("../../package.json");
+    await this.renderApp(<HelpUI version={pkg.version} />);
+  }
+}
+
+function HelpUI({ version }: { version: string }): React.ReactElement {
+  const { exit } = useApp();
+
+  useEffect(() => {
+    const timer = setTimeout(() => exit(), 100);
+    return () => clearTimeout(timer);
+  }, [exit]);
+
+  return (
+    <Box flexDirection="column">
+      <Text bold>ImBIOS - Z.AI & MiniMax Provider Manager v{version}</Text>
+      <Text />
+      <Text>Usage: cohe &lt;command&gt; [options]</Text>
+      <Text />
+      <Text bold>Commands:</Text>
+      <Text>
+        {" "}
+        claude [args...] Spawn Claude with auto-switch (accountsConfig.1)
+      </Text>
+      <Text> config Configure API providers (interactive)</Text>
+      <Text> switch &lt;provider&gt; Switch active provider (zai/minimax)</Text>
+      <Text> status Show current provider and status</Text>
+      <Text> usage Query quota and usage statistics</Text>
+      <Text> history Show usage history</Text>
+      <Text> cost [model] Estimate cost for a model</Text>
+      <Text> test Test API connection</Text>
+      <Text> plugin &lt;action&gt; Manage Claude Code plugin</Text>
+      <Text> doctor Diagnose configuration issues</Text>
+      <Text> env export Export environment variables</Text>
+      <Text> models [provider] List available models</Text>
+      <Text>
+        {" "}
+        completion &lt;shell&gt; Generate shell completion (bash/zsh/fish)
+      </Text>
+      <Text> profile &lt;cmd&gt; Manage configuration profiles (v1.1)</Text>
+      <Text> account &lt;cmd&gt; Multi-account management (v2)</Text>
+      <Text> rotate &lt;provider&gt; Rotate to next API key (v2)</Text>
+      <Text> dashboard &lt;cmd&gt; Web dashboard management (v2)</Text>
+      <Text> alert &lt;cmd&gt; Alert configuration (v2)</Text>
+      <Text> mcp &lt;cmd&gt; MCP server management (v1.0)</Text>
+      <Text> auto &lt;cmd&gt; Cross-provider auto-rotation (v2)</Text>
+      <Text> compare &lt;prompt&gt; Side-by-side Claude comparison (v2)</Text>
+      <Text> help Show this help message</Text>
+      <Text> version Show version</Text>
+      <Text />
+      <Text bold>Examples:</Text>
+      <Text> cohe claude # Run claude with auto-switch</Text>
+      <Text>
+        {" "}
+        cohe claude --continue # Run claude --continue with auto-switch
+      </Text>
+      <Text> cohe config # Configure providers</Text>
+      <Text> cohe switch minimax # Switch to MiniMax</Text>
+      <Text> cohe account add work # Add work account</Text>
+      <Text> cohe rotate zai # Rotate Z.AI key</Text>
+      <Text> cohe dashboard start # Start web dashboard</Text>
+      <Text> cohe mcp add-predefined zai # Add Z.AI MCP servers</Text>
+      <Text> cohe auto enable random --cross-provider</Text>
+      <Text> cohe compare "Write a React component"</Text>
+      <Text> eval "$(cohe env export)" # Export env vars</Text>
+      <Text />
+      <Text>For more info, visit: https://github.com/ImBIOS/coding-helper</Text>
+    </Box>
+  );
+}

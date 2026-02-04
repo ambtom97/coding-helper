@@ -87,7 +87,7 @@ describe("Provider interfaces", () => {
           models: [],
         }),
         getModels: () => [],
-        getDefaultModel: (type) => "default",
+        getDefaultModel: (_type) => "default",
         testConnection: () => Promise.resolve(true),
         getUsage: () =>
           Promise.resolve({ used: 0, limit: 0, remaining: 0, percentUsed: 0 }),

@@ -45,12 +45,12 @@ describe("MiniMaxProvider", () => {
       if (originalApiKey !== undefined) {
         process.env.MINIMAX_API_KEY = originalApiKey;
       } else {
-        delete process.env.MINIMAX_API_KEY;
+        process.env.MINIMAX_API_KEY = undefined;
       }
       if (originalBaseUrl !== undefined) {
         process.env.MINIMAX_BASE_URL = originalBaseUrl;
       } else {
-        delete process.env.MINIMAX_BASE_URL;
+        process.env.MINIMAX_BASE_URL = undefined;
       }
     });
 
@@ -70,7 +70,6 @@ describe("MiniMaxProvider", () => {
       const models = provider.getModels();
       expect(Array.isArray(models)).toBe(true);
       expect(models).toContain("MiniMax-M2.1");
-      expect(models).toContain("MiniMax-M2");
     });
   });
 
@@ -83,8 +82,8 @@ describe("MiniMaxProvider", () => {
       expect(provider.getDefaultModel("sonnet")).toBe("MiniMax-M2.1");
     });
 
-    it("should return MiniMax-M2 for haiku", () => {
-      expect(provider.getDefaultModel("haiku")).toBe("MiniMax-M2");
+    it("should return MiniMax-M2.1 for haiku", () => {
+      expect(provider.getDefaultModel("haiku")).toBe("MiniMax-M2.1");
     });
   });
 
@@ -96,20 +95,19 @@ describe("MiniMaxProvider", () => {
       expect(mapping).toHaveProperty("sonnet");
       expect(mapping).toHaveProperty("haiku");
       expect(mapping.opus).toBe("MiniMax-M2.1");
-      expect(mapping.haiku).toBe("MiniMax-M2");
+      expect(mapping.haiku).toBe("MiniMax-M2.1");
     });
   });
 
   describe("testConnection", () => {
     it("should return false when api key is not set", async () => {
-      delete process.env.MINIMAX_API_KEY;
+      process.env.MINIMAX_API_KEY = undefined;
       const result = await provider.testConnection();
       expect(result).toBe(false);
     });
 
     it("should handle fetch errors gracefully", async () => {
       process.env.MINIMAX_API_KEY = "test-key";
-      // Mock fetch to throw an error
       const originalFetch = globalThis.fetch;
       globalThis.fetch = (() => {
         throw new Error("Network error");
@@ -120,11 +118,49 @@ describe("MiniMaxProvider", () => {
 
       globalThis.fetch = originalFetch;
     });
+
+    it("should return true when Anthropic SDK messages.create succeeds", async () => {
+      process.env.MINIMAX_API_KEY = "test-key";
+
+      const mockMessageResponse = {
+        id: "msg_test",
+        type: "message",
+        role: "assistant" as const,
+        content: [{ type: "text" as const, text: "Hi" }],
+        model: "MiniMax-M2.1",
+        stop_reason: "end_turn" as const,
+        usage: { input_tokens: 1, output_tokens: 1 },
+      };
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
+        const u =
+          typeof input === "string"
+            ? input
+            : input instanceof Request
+              ? input.url
+              : input.toString();
+        if (u.includes("v1/messages") || u.includes("/messages")) {
+          return Promise.resolve(
+            new Response(JSON.stringify(mockMessageResponse), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            })
+          );
+        }
+        return originalFetch(input as RequestInfo, init);
+      }) as typeof fetch;
+
+      const result = await provider.testConnection();
+      expect(result).toBe(true);
+
+      globalThis.fetch = originalFetch;
+    });
   });
 
   describe("getUsage", () => {
     it("should return zero stats when api key is not set", async () => {
-      delete process.env.MINIMAX_API_KEY;
+      process.env.MINIMAX_API_KEY = undefined;
       const usage = await provider.getUsage();
 
       expect(usage.used).toBe(0);
@@ -155,13 +191,26 @@ describe("MiniMaxProvider", () => {
       globalThis.fetch = originalFetch;
     });
 
-    it("should parse usage from response", async () => {
+    it("should parse usage from MiniMax API response", async () => {
       process.env.MINIMAX_API_KEY = "test-key";
 
       const mockResponse = {
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ used: 500, limit: 1000 }),
+        json: () =>
+          Promise.resolve({
+            model_remains: [
+              {
+                start_time: 1_769_990_400_000,
+                end_time: 1_770_008_400_000,
+                remains_time: 9_701_871,
+                current_interval_total_count: 1500,
+                current_interval_usage_count: 500,
+                model_name: "MiniMax-M2.1",
+              },
+            ],
+            base_resp: { status_code: 0, status_msg: "success" },
+          }),
       };
 
       const originalFetch = globalThis.fetch;
@@ -173,9 +222,35 @@ describe("MiniMaxProvider", () => {
       const usage = await provider.getUsage();
 
       expect(usage.used).toBe(500);
-      expect(usage.limit).toBe(1000);
-      expect(usage.remaining).toBe(500);
-      expect(usage.percentUsed).toBe(50);
+      expect(usage.limit).toBe(1500);
+      expect(usage.remaining).toBe(1000);
+      expect(usage.percentUsed).toBeCloseTo(33.33, 1);
+
+      globalThis.fetch = originalFetch;
+    });
+
+    it("should handle non-success status code in response", async () => {
+      process.env.MINIMAX_API_KEY = "test-key";
+
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            base_resp: { status_code: 1, status_msg: "error" },
+          }),
+      };
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (() =>
+        Promise.resolve(
+          mockResponse as unknown as Response
+        )) as unknown as typeof fetch;
+
+      const usage = await provider.getUsage();
+
+      expect(usage.used).toBe(0);
+      expect(usage.limit).toBe(0);
 
       globalThis.fetch = originalFetch;
     });

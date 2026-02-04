@@ -1,12 +1,15 @@
 import inquirer from "inquirer";
 
-export async function confirm(message: string): Promise<boolean> {
+export async function confirm(
+  message: string,
+  defaultValue = true
+): Promise<boolean> {
   const { result } = await inquirer.prompt([
     {
       type: "confirm",
       name: "result",
       message,
-      default: true,
+      default: defaultValue,
     },
   ]);
   return result;

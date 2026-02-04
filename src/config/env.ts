@@ -5,7 +5,7 @@ export function getEnvPath(): string {
   return path.join(
     process.env.HOME || process.env.USERPROFILE || "",
     ".claude",
-    "imbios.env"
+    "cohe.env"
   );
 }
 
@@ -15,7 +15,7 @@ export function exportEnvVars(
   model: string
 ): string {
   return `# ImBIOS Environment Variables
-# Run: eval "$(imbios env export)"
+# Run: eval "$(cohe env export)"
 export ANTHROPIC_AUTH_TOKEN="${apiKey}"
 export ANTHROPIC_BASE_URL="${baseUrl}"
 export ANTHROPIC_MODEL="${model}"

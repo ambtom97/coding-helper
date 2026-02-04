@@ -190,7 +190,7 @@ export function generateMcpEnvExport(): string {
 }
 
 export function generateClaudeDesktopConfig(): string {
-  const config = loadMcpConfig();
+  const _config = loadMcpConfig();
   const enabledServers = listEnabledMcpServers();
 
   const mcpServers: Record<

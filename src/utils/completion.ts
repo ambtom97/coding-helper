@@ -3,7 +3,7 @@ export interface ShellType {
   completions: string;
 }
 
-const bashCompletions = `_imbios_completions() {
+const bashCompletions = `_cohe_completions() {
   local cur prev words cword
   _init_completion || return
   case "\${cur}" in
@@ -15,7 +15,7 @@ const bashCompletions = `_imbios_completions() {
       ;;
   esac
 }
-complete -F _imbios_completions imbios`;
+complete -F _cohe_completions cohe`;
 
 export const SHELLS: ShellType[] = [
   {
@@ -24,9 +24,9 @@ export const SHELLS: ShellType[] = [
   },
   {
     name: "zsh",
-    completions: `#compdef imbios
+    completions: `#compdef cohe
 
-_imbios() {
+_cohe() {
   local -a commands
   commands=(
     'config:Configure API providers'
@@ -44,27 +44,27 @@ _imbios() {
     'version:Show version'
   )
 
-  _describe -t commands 'imbios command' commands
+  _describe -t commands 'cohe command' commands
 }
 
-_imbios`,
+_cohe`,
   },
   {
     name: "fish",
-    completions: `complete -c imbios -f
-complete -c imbios -a 'config' -d 'Configure API providers'
-complete -c imbios -a 'switch' -d 'Switch active provider'
-complete -c imbios -a 'status' -d 'Show current status'
-complete -c imbios -a 'usage' -d 'Query usage statistics'
-complete -c imbios -a 'history' -d 'Show usage history'
-complete -c imbios -a 'cost' -d 'Estimate model costs'
-complete -c imbios -a 'test' -d 'Test API connection'
-complete -c imbios -a 'plugin' -d 'Manage plugin'
-complete -c imbios -a 'doctor' -d 'Diagnose issues'
-complete -c imbios -a 'env' -d 'Export environment'
-complete -c imbios -a 'models' -d 'List models'
-complete -c imbios -a 'help' -d 'Show help'
-complete -c imbios -a 'version' -d 'Show version'`,
+    completions: `complete -c cohe -f
+complete -c cohe -a 'config' -d 'Configure API providers'
+complete -c cohe -a 'switch' -d 'Switch active provider'
+complete -c cohe -a 'status' -d 'Show current status'
+complete -c cohe -a 'usage' -d 'Query usage statistics'
+complete -c cohe -a 'history' -d 'Show usage history'
+complete -c cohe -a 'cost' -d 'Estimate model costs'
+complete -c cohe -a 'test' -d 'Test API connection'
+complete -c cohe -a 'plugin' -d 'Manage plugin'
+complete -c cohe -a 'doctor' -d 'Diagnose issues'
+complete -c cohe -a 'env' -d 'Export environment'
+complete -c cohe -a 'models' -d 'List models'
+complete -c cohe -a 'help' -d 'Show help'
+complete -c cohe -a 'version' -d 'Show version'`,
   },
 ];
 
@@ -92,11 +92,11 @@ export function installCompletion(
   shell: string,
   dryRun = false
 ): { success: boolean; message: string } {
-  const completion = getShellCompletion(shell);
+  const _completion = getShellCompletion(shell);
   const paths: Record<string, string> = {
     bash: "~/.bash_completion",
     zsh: "~/.zshrc",
-    fish: "~/.config/fish/completions/imbios.fish",
+    fish: "~/.config/fish/completions/cohe.fish",
   };
 
   const path = paths[shell];

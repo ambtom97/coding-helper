@@ -28,18 +28,18 @@ describe("completion", () => {
     it("should return bash completion", () => {
       const completion = getShellCompletion("bash");
       expect(completion).toContain("complete -F");
-      expect(completion).toContain("imbios");
+      expect(completion).toContain("cohe");
     });
 
     it("should return zsh completion", () => {
       const completion = getShellCompletion("zsh");
-      expect(completion).toContain("#compdef imbios");
+      expect(completion).toContain("#compdef cohe");
       expect(completion).toContain("config:Configure");
     });
 
     it("should return fish completion", () => {
       const completion = getShellCompletion("fish");
-      expect(completion).toContain("complete -c imbios");
+      expect(completion).toContain("complete -c cohe");
     });
 
     it("should throw for unsupported shell", () => {
