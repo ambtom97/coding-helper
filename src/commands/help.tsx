@@ -22,15 +22,12 @@ function HelpUI({ version }: { version: string }): React.ReactElement {
 
   return (
     <Box flexDirection="column">
-      <Text bold>ImBIOS - Z.AI & MiniMax Provider Manager v{version}</Text>
+      <Text bold>COHE - Z.AI & MiniMax Provider Manager v{version}</Text>
       <Text />
       <Text>Usage: cohe &lt;command&gt; [options]</Text>
       <Text />
       <Text bold>Commands:</Text>
-      <Text>
-        {" "}
-        claude [args...] Spawn Claude with auto-switch (accountsConfig.1)
-      </Text>
+      <Text> claude [args...] Spawn Claude with auto-switch</Text>
       <Text> config Configure API providers (interactive)</Text>
       <Text> switch &lt;provider&gt; Switch active provider (zai/minimax)</Text>
       <Text> status Show current provider and status</Text>
@@ -46,14 +43,14 @@ function HelpUI({ version }: { version: string }): React.ReactElement {
         {" "}
         completion &lt;shell&gt; Generate shell completion (bash/zsh/fish)
       </Text>
-      <Text> profile &lt;cmd&gt; Manage configuration profiles (v1.1)</Text>
-      <Text> account &lt;cmd&gt; Multi-account management (v2)</Text>
-      <Text> rotate &lt;provider&gt; Rotate to next API key (v2)</Text>
-      <Text> dashboard &lt;cmd&gt; Web dashboard management (v2)</Text>
-      <Text> alert &lt;cmd&gt; Alert configuration (v2)</Text>
-      <Text> mcp &lt;cmd&gt; MCP server management (v1.0)</Text>
-      <Text> auto &lt;cmd&gt; Cross-provider auto-rotation (v2)</Text>
-      <Text> compare &lt;prompt&gt; Side-by-side Claude comparison (v2)</Text>
+      <Text> profile &lt;cmd&gt; Manage configuration profiles</Text>
+      <Text> account &lt;cmd&gt; Multi-account management</Text>
+      <Text> rotate &lt;provider&gt; Rotate to next API key</Text>
+      <Text> dashboard &lt;cmd&gt; Web dashboard management</Text>
+      <Text> alert &lt;cmd&gt; Alert configuration</Text>
+      <Text> mcp &lt;cmd&gt; MCP server management</Text>
+      <Text> auto &lt;cmd&gt; Cross-provider auto-rotation</Text>
+      <Text> compare &lt;prompt&gt; Side-by-side Claude comparison</Text>
       <Text> help Show this help message</Text>
       <Text> version Show version</Text>
       <Text />

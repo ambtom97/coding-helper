@@ -60,7 +60,7 @@ export interface RotationResult {
  * - Legacy provider rotation (switch between zai/minimax in imbios.json)
  */
 export async function performAutoRotation(): Promise<RotationResult> {
-  const config = accountsConfig.loadConfigV2();
+  const config = accountsConfig.loadConfig();
 
   if (!config.rotation.enabled) {
     const activeAccount = accountsConfig.getActiveAccount();

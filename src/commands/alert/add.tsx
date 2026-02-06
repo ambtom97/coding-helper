@@ -36,7 +36,7 @@ function AlertAddUI(): React.ReactElement {
     const thresh = Number.parseInt(value, 10) || 80;
     setThreshold(thresh);
 
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
     const alert = {
       id: `alert_${Date.now()}`,
       type,
@@ -44,7 +44,7 @@ function AlertAddUI(): React.ReactElement {
       enabled: true,
     };
     config.alerts.push(alert);
-    accountsConfig.saveConfigV2(config);
+    accountsConfig.saveConfig(config);
 
     setStep("done");
     setTimeout(() => exit(), 500);

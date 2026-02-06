@@ -9,7 +9,7 @@ export default class AlertList extends BaseCommand<typeof AlertList> {
   static examples = ["<%= config.bin %> alert list"];
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
     await this.renderApp(<AlertListUI alerts={config.alerts} />);
   }
 }

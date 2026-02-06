@@ -95,7 +95,7 @@ export default class HooksStatus extends BaseCommand<typeof HooksStatus> {
     }
 
     // Check rotation config
-    const configPath = path.join(os.homedir(), ".claude", "imbios.json");
+    const configPath = path.join(os.homedir(), ".claude", "cohe.json");
     if (fs.existsSync(configPath)) {
       try {
         const configContent = fs.readFileSync(configPath, "utf-8");

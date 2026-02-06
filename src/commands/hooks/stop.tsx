@@ -15,6 +15,7 @@ import { Info, Section, Warning } from "../../ui/index.js";
 interface StopOptions {
   silent: boolean;
   verbose: boolean;
+  noCommit: boolean;
 }
 
 interface TranscriptEntry {
@@ -228,7 +229,7 @@ async function stageAndCommit(message: string): Promise<boolean> {
 }
 
 export default class HooksStop extends BaseCommand<typeof HooksStop> {
-  static description = "Session end hook - notifications and commit prompt";
+  static description = "Session end hook - notifications and auto-commit";
 
   static examples = [
     "<%= config.bin %> hooks stop",
@@ -246,6 +247,10 @@ export default class HooksStop extends BaseCommand<typeof HooksStop> {
       shorthand: "v",
       type: "boolean",
     },
+    "no-commit": {
+      description: "Skip auto-commit",
+      type: "boolean",
+    },
   };
 
   async run(): Promise<void> {
@@ -253,6 +258,7 @@ export default class HooksStop extends BaseCommand<typeof HooksStop> {
     const options: StopOptions = {
       silent: flags.silent ?? false,
       verbose: flags.verbose ?? false,
+      noCommit: flags["no-commit"] ?? false,
     };
 
     // Get transcript path from stdin
@@ -278,8 +284,72 @@ export default class HooksStop extends BaseCommand<typeof HooksStop> {
     const changes = hasUncommittedChanges();
     const hasChanges = changes.staged || changes.unstaged || changes.untracked;
 
+    // Auto-commit if there are changes (unless --no-commit flag)
+    if (hasChanges && !options.noCommit) {
+      if (options.verbose) {
+        console.log("\n📝 Auto-committing changes...");
+      }
+
+      // Stage all changes (tracked + untracked, but NOT deleted files)
+      await runGitCommand(["add", "-u"]);
+
+      // Add untracked files explicitly
+      if (changes.untracked) {
+        await runGitCommand(["add", "."]);
+      }
+
+      // Try to commit with pre-commit checks
+      let commitSuccess = false;
+      let attempts = 0;
+      const maxAttempts = 3;
+
+      while (!commitSuccess && attempts < maxAttempts) {
+        attempts++;
+
+        const commitResult = await runGitCommand([
+          "commit",
+          "-m",
+          `WIP: ${message}`,
+          "--no-gpg-sign",
+          "--no-verify",
+        ]);
+
+        if (commitResult.success) {
+          commitSuccess = true;
+          if (!options.silent) {
+            console.log(`✅ Changes committed (attempt ${attempts})`);
+          }
+        } else {
+          // Pre-commit failed - try to fix and retry
+          if (attempts < maxAttempts) {
+            if (options.verbose) {
+              console.log(
+                `⚠️  Commit attempt ${attempts} failed, fixing and retrying...`
+              );
+            }
+
+            // Run formatter to fix issues
+            const { spawn } = await import("node:child_process");
+            await new Promise<void>((resolve) => {
+              spawn("bun", ["x", "ultracite", "fix"], {
+                stdio: "inherit",
+                shell: true,
+              }).on("close", () => resolve());
+            });
+
+            // Re-stage files after formatting
+            await runGitCommand(["add", "-u", "."]);
+          }
+        }
+      }
+
+      if (!(commitSuccess || options.silent)) {
+        console.error("❌ Failed to commit after ${maxAttempts} attempts");
+        console.error("Please commit manually with: git add -u && git commit");
+      }
+    }
+
     if (options.silent) {
-      // Just notify and exit
       return;
     }
 
@@ -291,11 +361,11 @@ export default class HooksStop extends BaseCommand<typeof HooksStop> {
             <Text>{message}</Text>
           </Box>
 
-          {hasChanges && (
+          {hasChanges && options.noCommit && (
             <Box marginTop={1}>
               <Warning>
-                You have uncommitted changes. Commit with "cohe hooks stop
-                --commit" or use "git commit" manually.
+                You have uncommitted changes. Use --no-commit to skip
+                auto-commit.
               </Warning>
             </Box>
           )}

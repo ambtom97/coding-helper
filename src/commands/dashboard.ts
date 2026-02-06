@@ -2,7 +2,7 @@ import * as http from "node:http";
 import {
   getActiveAccount,
   listAccounts,
-  loadConfigV2,
+  loadConfig,
 } from "../config/accounts-config";
 
 const DASHBOARD_HTML = `<!DOCTYPE html>
@@ -10,7 +10,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ImBIOS Dashboard</title>
+  <title>COHE Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
@@ -47,7 +47,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 <body>
   <div class="container">
     <header>
-      <h1>ImBIOS Dashboard v2.0</h1>
+      <h1>COHE Dashboard v2.0</h1>
       <span id="status" class="status-badge status-ok">Connected</span>
     </header>
 
@@ -144,7 +144,7 @@ const DASHBOARD_HTML = `<!DOCTYPE html>
 </html>`;
 
 export function startDashboard(): void {
-  const config = loadConfigV2();
+  const config = loadConfig();
 
   if (!config.dashboard.enabled) {
     console.log("Dashboard is disabled. Enable with: cohe dashboard start");
@@ -197,7 +197,7 @@ export function startDashboard(): void {
 
   const { host, port } = config.dashboard;
   server.listen(port, host, () => {
-    console.log(`ImBIOS Dashboard running at http://${host}:${port}`);
+    console.log(`COHE Dashboard running at http://${host}:${port}`);
     console.log(`Auth token: ${config.dashboard.authToken}`);
   });
 }

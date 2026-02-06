@@ -8,7 +8,7 @@ export default class AutoStatus extends BaseCommand<typeof AutoStatus> {
   static examples = ["<%= config.bin %> auto status"];
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
     const activeAccount = accountsConfig.getActiveAccount();
 
     await this.renderApp(

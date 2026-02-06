@@ -45,10 +45,12 @@ export interface RotationConfig {
   lastRotation?: string;
 }
 
-export interface ImBIOSConfigV2 {
+export interface COHEConfig {
   version: "2.0.0";
   accounts: Record<string, AccountConfig>;
   activeAccountId: string | null;
+  activeModelProviderId: string | null;
+  activeMcpProviderId: string | null;
   alerts: AlertConfig[];
   notifications: NotificationConfig;
   dashboard: {
@@ -60,10 +62,12 @@ export interface ImBIOSConfigV2 {
   rotation: RotationConfig;
 }
 
-export const DEFAULT_CONFIG_V2: ImBIOSConfigV2 = {
+export const DEFAULT_CONFIG: COHEConfig = {
   version: "2.0.0",
   accounts: {},
   activeAccountId: null,
+  activeModelProviderId: null,
+  activeMcpProviderId: null,
   alerts: [
     { id: "usage-80", type: "usage", threshold: 80, enabled: true },
     { id: "usage-90", type: "usage", threshold: 90, enabled: true },
@@ -85,31 +89,31 @@ export const DEFAULT_CONFIG_V2: ImBIOSConfigV2 = {
   },
 };
 
-export function getConfigPathV2(): string {
+export function getConfigPath(): string {
   return `${process.env.HOME || process.env.USERPROFILE}/.claude/cohe.json`;
 }
 
-export function loadConfigV2(): ImBIOSConfigV2 {
+export function loadConfig(): COHEConfig {
   try {
     const fs = require("node:fs");
     const _path = require("node:path");
-    const configPath = getConfigPathV2();
+    const configPath = getConfigPath();
 
     if (fs.existsSync(configPath)) {
       const content = fs.readFileSync(configPath, "utf-8");
       const config = JSON.parse(content);
-      return { ...DEFAULT_CONFIG_V2, ...config };
+      return { ...DEFAULT_CONFIG, ...config };
     }
   } catch {
     // Ignore errors
   }
-  return { ...DEFAULT_CONFIG_V2 };
+  return { ...DEFAULT_CONFIG };
 }
 
-export function saveConfigV2(config: ImBIOSConfigV2): void {
+export function saveConfig(config: COHEConfig): void {
   const fs = require("node:fs");
   const path = require("node:path");
-  const configPath = getConfigPathV2();
+  const configPath = getConfigPath();
   const configDir = path.dirname(configPath);
 
   if (!fs.existsSync(configDir)) {
@@ -147,14 +151,14 @@ export function addAccount(
     ...(groupId && { groupId }),
   };
 
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.accounts[id] = account;
 
   if (!config.activeAccountId) {
     config.activeAccountId = id;
   }
 
-  saveConfigV2(config);
+  saveConfig(config);
   return account;
 }
 
@@ -162,7 +166,7 @@ export function updateAccount(
   id: string,
   updates: Partial<AccountConfig>
 ): AccountConfig | null {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const account = config.accounts[id];
 
   if (!account) {
@@ -174,12 +178,12 @@ export function updateAccount(
     ...updates,
     lastUsed: new Date().toISOString(),
   };
-  saveConfigV2(config);
+  saveConfig(config);
   return config.accounts[id];
 }
 
 export function deleteAccount(id: string): boolean {
-  const config = loadConfigV2();
+  const config = loadConfig();
 
   if (!config.accounts[id]) {
     return false;
@@ -192,12 +196,12 @@ export function deleteAccount(id: string): boolean {
     config.activeAccountId = remainingIds.length > 0 ? remainingIds[0] : null;
   }
 
-  saveConfigV2(config);
+  saveConfig(config);
   return true;
 }
 
 export function getActiveAccount(): AccountConfig | null {
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (!config.activeAccountId) {
     return null;
   }
@@ -205,27 +209,55 @@ export function getActiveAccount(): AccountConfig | null {
 }
 
 export function listAccounts(): AccountConfig[] {
-  const config = loadConfigV2();
+  const config = loadConfig();
   return Object.values(config.accounts).sort((a, b) => a.priority - b.priority);
 }
 
 export function switchAccount(id: string): boolean {
-  const config = loadConfigV2();
+  const config = loadConfig();
 
   if (!config.accounts[id]) {
     return false;
   }
 
   config.activeAccountId = id;
+  config.activeModelProviderId = id;
+  config.activeMcpProviderId = id;
   config.accounts[id].lastUsed = new Date().toISOString();
-  saveConfigV2(config);
+  saveConfig(config);
+  return true;
+}
+
+export function setActiveModelProvider(id: string): boolean {
+  const config = loadConfig();
+
+  if (!config.accounts[id]) {
+    return false;
+  }
+
+  config.activeModelProviderId = id;
+  config.accounts[id].lastUsed = new Date().toISOString();
+  saveConfig(config);
+  return true;
+}
+
+export function setActiveMcpProvider(id: string): boolean {
+  const config = loadConfig();
+
+  if (!config.accounts[id]) {
+    return false;
+  }
+
+  config.activeMcpProviderId = id;
+  config.accounts[id].lastUsed = new Date().toISOString();
+  saveConfig(config);
   return true;
 }
 
 export function rotateApiKey(
   provider: "zai" | "minimax"
 ): AccountConfig | null {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const providerAccounts = Object.values(config.accounts)
     .filter((a) => a.provider === provider && a.isActive)
     .sort((a, b) => {
@@ -247,7 +279,7 @@ export function rotateApiKey(
 
   config.activeAccountId = nextAccount.id;
   nextAccount.lastUsed = new Date().toISOString();
-  saveConfigV2(config);
+  saveConfig(config);
 
   return nextAccount;
 }
@@ -257,7 +289,7 @@ export function checkAlerts(usage: {
   limit: number;
   remaining?: number;
 }): AlertConfig[] {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const triggered: AlertConfig[] = [];
 
   const percentUsed = usage.limit > 0 ? (usage.used / usage.limit) * 100 : 0;
@@ -282,7 +314,7 @@ export function updateAlert(
   id: string,
   updates: Partial<AlertConfig>
 ): AlertConfig | null {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const alertIndex = config.alerts.findIndex((a) => a.id === id);
 
   if (alertIndex === -1) {
@@ -290,7 +322,7 @@ export function updateAlert(
   }
 
   config.alerts[alertIndex] = { ...config.alerts[alertIndex], ...updates };
-  saveConfigV2(config);
+  saveConfig(config);
   return config.alerts[alertIndex];
 }
 
@@ -299,7 +331,7 @@ export function toggleDashboard(
   port?: number,
   host?: string
 ): void {
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.dashboard.enabled = enabled;
   if (port) {
     config.dashboard.port = port;
@@ -308,11 +340,11 @@ export function toggleDashboard(
     config.dashboard.host = host;
   }
   if (enabled && !config.dashboard.authToken) {
-    config.dashboard.authToken = `imbios_${Math.random()
+    config.dashboard.authToken = `cohe_${Math.random()
       .toString(36)
       .slice(2, 16)}`;
   }
-  saveConfigV2(config);
+  saveConfig(config);
 }
 
 export function configureRotation(
@@ -320,7 +352,7 @@ export function configureRotation(
   strategy?: RotationStrategy,
   crossProvider?: boolean
 ): void {
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.rotation.enabled = enabled;
   if (strategy) {
     config.rotation.strategy = strategy;
@@ -328,7 +360,7 @@ export function configureRotation(
   if (crossProvider !== undefined) {
     config.rotation.crossProvider = crossProvider;
   }
-  saveConfigV2(config);
+  saveConfig(config);
 }
 
 /**
@@ -365,14 +397,14 @@ async function fetchAndUpdateUsage(account: AccountConfig): Promise<number> {
         },
       });
 
-      // For rotation, use the DISPLAYED percentage (matches `cohe usage`)
-      // ZAI: use mcpUsage.percentUsed (35% displayed)
-      // MiniMax: use percentRemaining (0% displayed when full)
+      // For rotation, use the ACTUAL USAGE PERCENTAGE (lower = less used)
+      // ZAI: use mcpUsage.percentUsed (55% when used)
+      // MiniMax: use percentUsed, NOT percentRemaining
       if (account.provider === "zai" && usage.mcpUsage) {
         return usage.mcpUsage.percentUsed;
       }
-      // MiniMax: use displayed percentage (percentRemaining if available)
-      return usage.percentRemaining ?? usage.percentUsed;
+      // MiniMax: always use percentUsed for rotation comparison
+      return usage.percentUsed;
     }
   } catch {
     // Silently fail and fall back to cached usage
@@ -386,7 +418,7 @@ async function fetchAndUpdateUsage(account: AccountConfig): Promise<number> {
 }
 
 export async function rotateAcrossProviders(): Promise<AccountConfig | null> {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const allAccounts = Object.values(config.accounts).filter((a) => a.isActive);
 
   if (allAccounts.length === 0) {
@@ -440,9 +472,11 @@ export async function rotateAcrossProviders(): Promise<AccountConfig | null> {
 
   if (nextAccount && nextAccount.id !== currentId) {
     config.activeAccountId = nextAccount.id;
+    config.activeModelProviderId = nextAccount.id;
+    config.activeMcpProviderId = nextAccount.id;
     nextAccount.lastUsed = new Date().toISOString();
     config.rotation.lastRotation = new Date().toISOString();
-    saveConfigV2(config);
+    saveConfig(config);
   }
 
   return nextAccount;

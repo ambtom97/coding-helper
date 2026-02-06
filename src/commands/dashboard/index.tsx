@@ -11,7 +11,7 @@ export default class Dashboard extends BaseCommand<typeof Dashboard> {
   ];
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
 
     if (config.dashboard.enabled) {
       // Dashboard is enabled - show running status

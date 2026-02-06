@@ -79,7 +79,7 @@ export default class AccountEdit extends BaseCommand<typeof AccountEdit> {
   };
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
     const accountId = this.argv?.[0];
     const flags = parseFlags(this.argv || []);
     const account = config.accounts[accountId as string];

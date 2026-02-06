@@ -298,8 +298,8 @@ class MiniMaxProvider {
       }
       const modelRemains = data.model_remains[0];
       const limit = modelRemains.current_interval_total_count;
-      const used = modelRemains.current_interval_usage_count;
-      const remaining = Math.max(0, limit - used);
+      const remaining = modelRemains.current_interval_usage_count;
+      const used = Math.max(0, limit - remaining);
       const percentUsed = limit > 0 ? used / limit * 100 : 0;
       const percentRemaining = limit > 0 ? remaining / limit * 100 : 0;
       return {
@@ -326,26 +326,26 @@ var init_minimax = __esm(() => {
 });
 
 // src/config/accounts-config.ts
-function getConfigPathV2() {
+function getConfigPath() {
   return `${process.env.HOME || process.env.USERPROFILE}/.claude/cohe.json`;
 }
-function loadConfigV2() {
+function loadConfig() {
   try {
     const fs = __require("node:fs");
     const _path = __require("node:path");
-    const configPath = getConfigPathV2();
+    const configPath = getConfigPath();
     if (fs.existsSync(configPath)) {
       const content = fs.readFileSync(configPath, "utf-8");
       const config = JSON.parse(content);
-      return { ...DEFAULT_CONFIG_V2, ...config };
+      return { ...DEFAULT_CONFIG, ...config };
     }
   } catch {}
-  return { ...DEFAULT_CONFIG_V2 };
+  return { ...DEFAULT_CONFIG };
 }
-function saveConfigV2(config) {
+function saveConfig(config) {
   const fs = __require("node:fs");
   const path = __require("node:path");
-  const configPath = getConfigPathV2();
+  const configPath = getConfigPath();
   const configDir = path.dirname(configPath);
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
@@ -370,16 +370,16 @@ function addAccount(name, provider, apiKey, baseUrl, defaultModel, groupId) {
     createdAt: now,
     ...groupId && { groupId }
   };
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.accounts[id] = account;
   if (!config.activeAccountId) {
     config.activeAccountId = id;
   }
-  saveConfigV2(config);
+  saveConfig(config);
   return account;
 }
 function updateAccount(id, updates) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const account = config.accounts[id];
   if (!account) {
     return null;
@@ -389,11 +389,11 @@ function updateAccount(id, updates) {
     ...updates,
     lastUsed: new Date().toISOString()
   };
-  saveConfigV2(config);
+  saveConfig(config);
   return config.accounts[id];
 }
 function deleteAccount(id) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (!config.accounts[id]) {
     return false;
   }
@@ -402,32 +402,34 @@ function deleteAccount(id) {
     const remainingIds = Object.keys(config.accounts);
     config.activeAccountId = remainingIds.length > 0 ? remainingIds[0] : null;
   }
-  saveConfigV2(config);
+  saveConfig(config);
   return true;
 }
 function getActiveAccount() {
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (!config.activeAccountId) {
     return null;
   }
   return config.accounts[config.activeAccountId] || null;
 }
 function listAccounts() {
-  const config = loadConfigV2();
+  const config = loadConfig();
   return Object.values(config.accounts).sort((a, b) => a.priority - b.priority);
 }
 function switchAccount(id) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (!config.accounts[id]) {
     return false;
   }
   config.activeAccountId = id;
+  config.activeModelProviderId = id;
+  config.activeMcpProviderId = id;
   config.accounts[id].lastUsed = new Date().toISOString();
-  saveConfigV2(config);
+  saveConfig(config);
   return true;
 }
 function rotateApiKey(provider) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const providerAccounts = Object.values(config.accounts).filter((a) => a.provider === provider && a.isActive).sort((a, b) => {
     if (config.rotation.strategy === "least-used") {
       return (a.usage?.used || 0) - (b.usage?.used || 0);
@@ -442,11 +444,11 @@ function rotateApiKey(provider) {
   const nextAccount = providerAccounts[nextIndex];
   config.activeAccountId = nextAccount.id;
   nextAccount.lastUsed = new Date().toISOString();
-  saveConfigV2(config);
+  saveConfig(config);
   return nextAccount;
 }
 function checkAlerts(usage) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const triggered = [];
   const percentUsed = usage.limit > 0 ? usage.used / usage.limit * 100 : 0;
   for (const alert of config.alerts) {
@@ -463,17 +465,17 @@ function checkAlerts(usage) {
   return triggered;
 }
 function updateAlert(id, updates) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const alertIndex = config.alerts.findIndex((a) => a.id === id);
   if (alertIndex === -1) {
     return null;
   }
   config.alerts[alertIndex] = { ...config.alerts[alertIndex], ...updates };
-  saveConfigV2(config);
+  saveConfig(config);
   return config.alerts[alertIndex];
 }
 function toggleDashboard(enabled, port, host) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.dashboard.enabled = enabled;
   if (port) {
     config.dashboard.port = port;
@@ -482,12 +484,12 @@ function toggleDashboard(enabled, port, host) {
     config.dashboard.host = host;
   }
   if (enabled && !config.dashboard.authToken) {
-    config.dashboard.authToken = `imbios_${Math.random().toString(36).slice(2, 16)}`;
+    config.dashboard.authToken = `cohe_${Math.random().toString(36).slice(2, 16)}`;
   }
-  saveConfigV2(config);
+  saveConfig(config);
 }
 function configureRotation(enabled, strategy, crossProvider) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   config.rotation.enabled = enabled;
   if (strategy) {
     config.rotation.strategy = strategy;
@@ -495,7 +497,7 @@ function configureRotation(enabled, strategy, crossProvider) {
   if (crossProvider !== undefined) {
     config.rotation.crossProvider = crossProvider;
   }
-  saveConfigV2(config);
+  saveConfig(config);
 }
 async function fetchAndUpdateUsage(account) {
   try {
@@ -517,7 +519,7 @@ async function fetchAndUpdateUsage(account) {
       if (account.provider === "zai" && usage.mcpUsage) {
         return usage.mcpUsage.percentUsed;
       }
-      return usage.percentRemaining ?? usage.percentUsed;
+      return usage.percentUsed;
     }
   } catch {}
   if (account.usage && account.usage.limit > 0) {
@@ -526,7 +528,7 @@ async function fetchAndUpdateUsage(account) {
   return 0;
 }
 async function rotateAcrossProviders() {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const allAccounts = Object.values(config.accounts).filter((a) => a.isActive);
   if (allAccounts.length === 0) {
     return null;
@@ -567,18 +569,22 @@ async function rotateAcrossProviders() {
   }
   if (nextAccount && nextAccount.id !== currentId) {
     config.activeAccountId = nextAccount.id;
+    config.activeModelProviderId = nextAccount.id;
+    config.activeMcpProviderId = nextAccount.id;
     nextAccount.lastUsed = new Date().toISOString();
     config.rotation.lastRotation = new Date().toISOString();
-    saveConfigV2(config);
+    saveConfig(config);
   }
   return nextAccount;
 }
-var DEFAULT_CONFIG_V2;
+var DEFAULT_CONFIG;
 var init_accounts_config = __esm(() => {
-  DEFAULT_CONFIG_V2 = {
+  DEFAULT_CONFIG = {
     version: "2.0.0",
     accounts: {},
     activeAccountId: null,
+    activeModelProviderId: null,
+    activeMcpProviderId: null,
     alerts: [
       { id: "usage-80", type: "usage", threshold: 80, enabled: true },
       { id: "usage-90", type: "usage", threshold: 90, enabled: true },
@@ -605,7 +611,7 @@ var init_accounts_config = __esm(() => {
 import * as fs from "node:fs";
 import * as path from "node:path";
 function getMcpPath() {
-  return `${process.env.HOME || process.env.USERPROFILE}/.claude/imbios-mcp.json`;
+  return `${process.env.HOME || process.env.USERPROFILE}/.claude/cohe-mcp.json`;
 }
 function loadMcpConfig() {
   try {
@@ -615,7 +621,7 @@ function loadMcpConfig() {
       return JSON.parse(content);
     }
   } catch {}
-  return { ...DEFAULT_CONFIG };
+  return { ...DEFAULT_CONFIG2 };
 }
 function saveMcpConfig(config) {
   const configPath = getMcpPath();
@@ -684,7 +690,7 @@ function getMcpEnvForServer(name) {
 function generateMcpEnvExport() {
   const config = loadMcpConfig();
   const enabledServers = listEnabledMcpServers();
-  let envScript = `# ImBIOS MCP Configuration
+  let envScript = `# COHE MCP Configuration
 `;
   if (config.globalEnv && Object.keys(config.globalEnv).length > 0) {
     envScript += `# Global MCP Environment Variables
@@ -698,19 +704,19 @@ function generateMcpEnvExport() {
   }
   envScript += `# MCP Servers
 `;
-  envScript += `export IMBIOS_MCP_SERVERS="${enabledServers.map((s) => s.name).join(",")}"
+  envScript += `export COHE_MCP_SERVERS="${enabledServers.map((s) => s.name).join(",")}"
 
 `;
   for (const server of enabledServers) {
     envScript += `# Server: ${server.name}
 `;
-    envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_COMMAND="${server.command}"
+    envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_COMMAND="${server.command}"
 `;
-    envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ARGS="${server.args.join(" ")}"
+    envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ARGS="${server.args.join(" ")}"
 `;
     if (server.env) {
       for (const [key, value] of Object.entries(server.env)) {
-        envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ENV_${key}="${value}"
+        envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ENV_${key}="${value}"
 `;
       }
     }
@@ -747,10 +753,10 @@ function addPredefinedServers(provider) {
   }
   saveMcpConfig(config);
 }
-var DEFAULT_CONFIG, ZAI_MCP_SERVERS, MINIMAX_MCP_SERVERS;
+var DEFAULT_CONFIG2, ZAI_MCP_SERVERS, MINIMAX_MCP_SERVERS;
 var init_mcp = __esm(() => {
-  DEFAULT_CONFIG = {
-    version: "1.0.0",
+  DEFAULT_CONFIG2 = {
+    version: "2.0.0",
     servers: {},
     globalEnv: {}
   };
@@ -809,7 +815,7 @@ function loadProfiles() {
       return JSON.parse(content);
     }
   } catch {}
-  return DEFAULT_CONFIG2;
+  return DEFAULT_CONFIG3;
 }
 function saveProfiles(config) {
   const configPath = getProfilesPath();
@@ -881,9 +887,9 @@ export API_TIMEOUT_MS=3000000
 export IMBIOS_PROFILE="${name}"
 `;
 }
-var DEFAULT_CONFIG2;
+var DEFAULT_CONFIG3;
 var init_profiles = __esm(() => {
-  DEFAULT_CONFIG2 = {
+  DEFAULT_CONFIG3 = {
     activeProfile: "default",
     profiles: {},
     settings: {
@@ -901,10 +907,10 @@ import * as path3 from "node:path";
 function getConfigDir() {
   return path3.join(os.homedir(), ".claude");
 }
-function getConfigPath() {
+function getConfigPath2() {
   return CONFIG_PATH;
 }
-function loadConfig() {
+function loadConfig2() {
   try {
     if (fs3.existsSync(CONFIG_PATH)) {
       const content = fs3.readFileSync(CONFIG_PATH, "utf-8");
@@ -913,7 +919,7 @@ function loadConfig() {
   } catch {}
   return { provider: "zai" };
 }
-function saveConfig(config) {
+function saveConfig2(config) {
   const configDir = getConfigDir();
   if (!fs3.existsSync(configDir)) {
     fs3.mkdirSync(configDir, { recursive: true });
@@ -921,7 +927,7 @@ function saveConfig(config) {
   fs3.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 }
 function getProviderConfig(provider) {
-  const config = loadConfig();
+  const config = loadConfig2();
   const providerConfig = config[provider];
   if (!providerConfig) {
     return {};
@@ -933,21 +939,21 @@ function getProviderConfig(provider) {
   };
 }
 function setProviderConfig(provider, apiKey, baseUrl, defaultModel) {
-  const config = loadConfig();
+  const config = loadConfig2();
   config[provider] = { apiKey, baseUrl, defaultModel, models: [] };
-  saveConfig(config);
+  saveConfig2(config);
 }
 function getActiveProvider() {
-  const config = loadConfig();
+  const config = loadConfig2();
   return config.provider || "zai";
 }
 function setActiveProvider(provider) {
-  const config = loadConfig();
+  const config = loadConfig2();
   config.provider = provider;
-  saveConfig(config);
+  saveConfig2(config);
 }
 function getUsageHistory(provider) {
-  const config = loadConfig();
+  const config = loadConfig2();
   return config.history?.[provider] || [];
 }
 var CONFIG_PATH;
@@ -1102,7 +1108,7 @@ __export(exports_dashboard, {
 });
 import * as http from "node:http";
 function startDashboard() {
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (!config.dashboard.enabled) {
     console.log("Dashboard is disabled. Enable with: cohe dashboard start");
     return;
@@ -1143,7 +1149,7 @@ function startDashboard() {
   });
   const { host, port } = config.dashboard;
   server.listen(port, host, () => {
-    console.log(`ImBIOS Dashboard running at http://${host}:${port}`);
+    console.log(`COHE Dashboard running at http://${host}:${port}`);
     console.log(`Auth token: ${config.dashboard.authToken}`);
   });
 }
@@ -1155,7 +1161,7 @@ var DASHBOARD_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ImBIOS Dashboard</title>
+  <title>COHE Dashboard</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; }
@@ -1192,7 +1198,7 @@ var DASHBOARD_HTML = `<!DOCTYPE html>
 <body>
   <div class="container">
     <header>
-      <h1>ImBIOS Dashboard v2.0</h1>
+      <h1>COHE Dashboard v2.0</h1>
       <span id="status" class="status-badge status-ok">Connected</span>
     </header>
 
@@ -1304,7 +1310,9 @@ import * as path4 from "node:path";
 async function handleHooksSetup() {
   const claudeSettingsPath = path4.join(os2.homedir(), ".claude");
   const settingsFilePath = path4.join(claudeSettingsPath, "settings.json");
-  const hookCommand = "cohe auto hook --silent";
+  const sessionStartCommand = "cohe auto hook --silent";
+  const postToolCommand = "cohe hooks post-tool --silent";
+  const stopCommand = "cohe hooks stop --silent";
   try {
     let settings = {};
     if (fs4.existsSync(settingsFilePath)) {
@@ -1318,41 +1326,72 @@ async function handleHooksSetup() {
     if (!settings.hooks) {
       settings.hooks = {};
     }
+    let hooksInstalled = 0;
+    let hooksSkipped = 0;
     if (!settings.hooks.SessionStart) {
       settings.hooks.SessionStart = [];
     }
-    const hookExists = settings.hooks.SessionStart.some((hookConfig) => {
-      return hookConfig.type === "command" && hookConfig.command && (hookConfig.command === hookCommand || hookConfig.command.includes("auto hook") || hookConfig.command.includes("auto-rotate.sh"));
-    });
-    if (hookExists) {
-      section("Hooks Setup");
-      info("Auto-rotate hook is already installed.");
-      info(`Hook command: ${hookCommand}`);
-      return;
+    const sessionStartExists = settings.hooks.SessionStart.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && (hookConfig.command === sessionStartCommand || hookConfig.command.includes("auto hook") || hookConfig.command.includes("auto-rotate.sh")));
+    if (sessionStartExists) {
+      hooksSkipped++;
+    } else {
+      settings.hooks.SessionStart.push({
+        matcher: "startup|resume|clear|compact",
+        hooks: [
+          {
+            type: "command",
+            command: sessionStartCommand
+          }
+        ]
+      });
+      hooksInstalled++;
     }
-    settings.hooks.SessionStart.push({
-      matcher: "startup|resume|clear|compact",
-      hooks: [
-        {
-          type: "command",
-          command: hookCommand
-        }
-      ]
-    });
+    if (!settings.hooks.PostToolUse) {
+      settings.hooks.PostToolUse = [];
+    }
+    const postToolExists = settings.hooks.PostToolUse.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && hookConfig.command.includes("hooks post-tool"));
+    if (postToolExists) {
+      hooksSkipped++;
+    } else {
+      settings.hooks.PostToolUse.push({
+        matcher: "Write|Edit",
+        hooks: [
+          {
+            type: "command",
+            command: postToolCommand
+          }
+        ]
+      });
+      hooksInstalled++;
+    }
+    if (!settings.hooks.Stop) {
+      settings.hooks.Stop = [];
+    }
+    const stopExists = settings.hooks.Stop.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && hookConfig.command.includes("hooks stop"));
+    if (stopExists) {
+      hooksSkipped++;
+    } else {
+      settings.hooks.Stop.push({
+        hooks: [
+          {
+            type: "command",
+            command: stopCommand
+          }
+        ]
+      });
+      hooksInstalled++;
+    }
     fs4.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
     section("Hooks Setup");
-    success("Auto-rotate hook installed successfully!");
-    info(`Hook command: ${hookCommand}`);
+    success(`Installed ${hooksInstalled} hook(s), ${hooksSkipped} already present.`);
     info(`Settings location: ${settingsFilePath}`);
     info("");
-    info("The hook will automatically rotate your API keys when you start a Claude session.");
-    info("Uses the cohe CLI directly, so updates to the rotation algorithm are automatically applied.");
+    info("Installed hooks:");
+    info("  • SessionStart: Auto-rotate API keys on startup");
+    info("  • PostToolUse: Format files after Write|Edit");
+    info("  • Stop: Notifications + commit prompt on session end");
     info("");
-    info("Current configuration:");
-    info("  • Rotation: enabled");
-    info("  • Strategy: least-used");
-    info("");
-    info('Run "cohe config" or "cohe auto status" to view or change settings.');
+    info("Uses the cohe CLI directly, so all hooks auto-update with the package.");
   } catch (err) {
     section("Hooks Setup");
     error("Failed to install hooks");
@@ -1366,6 +1405,7 @@ async function handleHooksUninstall() {
   try {
     let hookRemoved = false;
     let settingsModified = false;
+    let hooksRemoved = 0;
     if (fs4.existsSync(hookScriptPath)) {
       fs4.unlinkSync(hookScriptPath);
       hookRemoved = true;
@@ -1378,42 +1418,46 @@ async function handleHooksUninstall() {
       } catch {
         settings = {};
       }
-      if (settings.hooks?.SessionStart) {
-        const originalLength = settings.hooks.SessionStart.length;
-        settings.hooks.SessionStart = settings.hooks.SessionStart.filter((hookGroup) => {
-          if (!(hookGroup.hooks && Array.isArray(hookGroup.hooks))) {
-            return true;
-          }
-          const hasOurHook = hookGroup.hooks.some((hookConfig) => {
-            if (hookConfig.type !== "command") {
-              return false;
+      const hookTypes = ["SessionStart", "PostToolUse", "Stop"];
+      for (const hookType of hookTypes) {
+        if (settings.hooks?.[hookType]) {
+          const originalLength = settings.hooks[hookType].length;
+          settings.hooks[hookType] = settings.hooks[hookType].filter((hookGroup) => {
+            if (!(hookGroup.hooks && Array.isArray(hookGroup.hooks))) {
+              return true;
             }
-            if (!hookConfig.command) {
-              return false;
-            }
-            return hookConfig.command === hookScriptPath || hookConfig.command.includes("auto-rotate.sh") || hookConfig.command.includes("auto hook") || hookConfig.command === "cohe auto hook --silent";
+            const hasOurHook = hookGroup.hooks.some((hookConfig) => {
+              if (hookConfig.type !== "command" || !hookConfig.command) {
+                return false;
+              }
+              const cmd = hookConfig.command;
+              return cmd === hookScriptPath || cmd.includes("auto-rotate.sh") || cmd.includes("auto hook") || cmd === "cohe auto hook --silent" || cmd.includes("hooks post-tool") || cmd.includes("hooks stop");
+            });
+            return !hasOurHook;
           });
-          return !hasOurHook;
-        });
-        if (settings.hooks.SessionStart.length !== originalLength) {
-          settingsModified = true;
-          if (settings.hooks.SessionStart.length === 0) {
-            settings.hooks.SessionStart = undefined;
-            if (Object.keys(settings.hooks).length === 0) {
-              settings.hooks = undefined;
+          if (settings.hooks[hookType].length !== originalLength) {
+            hooksRemoved += originalLength - settings.hooks[hookType].length;
+            settingsModified = true;
+            if (settings.hooks[hookType].length === 0) {
+              delete settings.hooks[hookType];
             }
           }
-          fs4.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
         }
+      }
+      if (settings.hooks && Object.keys(settings.hooks).length === 0) {
+        settings.hooks = undefined;
+      }
+      if (settingsModified) {
+        fs4.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
       }
     }
     section("Hooks Uninstall");
     if (!(hookRemoved || settingsModified)) {
-      info("No auto-rotate hooks found.");
+      info("No cohe hooks found.");
       info("Hooks may have already been removed or were never installed.");
       return;
     }
-    success("Auto-rotate hooks removed successfully!");
+    success(`Removed ${hooksRemoved} hook(s).`);
     if (hookRemoved) {
       info("Removed legacy hook script");
     }
@@ -1421,7 +1465,7 @@ async function handleHooksUninstall() {
       info(`Updated Claude settings: ${settingsFilePath}`);
     }
     info("");
-    info("Auto-rotation is no longer automatic. You can still manually rotate with 'cohe auto rotate'.");
+    info("Auto-rotation, formatting, and notifications are no longer automatic.");
     info("To re-enable hooks, run 'cohe hooks setup'.");
   } catch (err) {
     section("Hooks Uninstall");
@@ -1435,9 +1479,27 @@ async function handleHooksStatus() {
   const hookScriptPath = path4.join(hooksDir, "auto-rotate.sh");
   const scriptExists = fs4.existsSync(hookScriptPath);
   const scriptExecutable = scriptExists && (fs4.statSync(hookScriptPath).mode & 493) !== 0;
+  const hooks = [
+    {
+      name: "SessionStart",
+      command: "cohe auto hook --silent",
+      registered: false,
+      hookType: "auto-rotate"
+    },
+    {
+      name: "PostToolUse",
+      command: "cohe hooks post-tool --silent",
+      registered: false,
+      hookType: "format"
+    },
+    {
+      name: "Stop",
+      command: "cohe hooks stop --silent",
+      registered: false,
+      hookType: "notify"
+    }
+  ];
   let settingsFound = false;
-  let hookRegistered = false;
-  let hookCommand = "";
   let rotationEnabled = false;
   let rotationStrategy = "unknown";
   if (fs4.existsSync(settingsFilePath)) {
@@ -1445,26 +1507,18 @@ async function handleHooksStatus() {
       const content = fs4.readFileSync(settingsFilePath, "utf-8");
       const settings = JSON.parse(content);
       settingsFound = true;
-      if (settings.hooks?.SessionStart) {
-        hookRegistered = settings.hooks.SessionStart.some((hookGroup) => {
-          if (!(hookGroup.hooks && Array.isArray(hookGroup.hooks))) {
-            return false;
-          }
-          return hookGroup.hooks.some((hookConfig) => {
-            if (hookConfig.type !== "command") {
-              return false;
+      for (const hook of hooks) {
+        if (settings.hooks?.[hook.name]) {
+          settings.hooks[hook.name].forEach((hookGroup) => {
+            if (hookGroup.hooks && Array.isArray(hookGroup.hooks)) {
+              hookGroup.hooks.forEach((hookConfig) => {
+                if (hookConfig.type === "command" && hookConfig.command && (hookConfig.command.includes(hook.command.split(" ")[1]) || hookConfig.command.includes(hook.hookType))) {
+                  hook.registered = true;
+                }
+              });
             }
-            if (!hookConfig.command) {
-              return false;
-            }
-            const cmd = hookConfig.command;
-            if (cmd === hookScriptPath || cmd === `"${hookScriptPath}"` || cmd.includes("auto-rotate.sh") || cmd.includes("auto hook")) {
-              hookCommand = cmd;
-              return true;
-            }
-            return false;
           });
-        });
+        }
       }
     } catch {}
   }
@@ -1477,44 +1531,987 @@ async function handleHooksStatus() {
       rotationStrategy = config.rotation?.strategy ?? "unknown";
     } catch {}
   }
-  const isFullyInstalled = hookRegistered;
-  const isPartiallyInstalled = scriptExists || hookRegistered;
-  const usesCoheCommand = hookCommand.includes("auto hook");
+  const allHooksInstalled = hooks.every((h) => h.registered);
+  const someHooksInstalled = hooks.some((h) => h.registered);
   section("Hooks Status");
-  console.log("Overall Status: " + (isFullyInstalled ? "✓ Installed" : isPartiallyInstalled ? "⚠ Partially Installed" : "✗ Not Installed"));
-  if (hookRegistered) {
-    console.log("");
-    console.log("Hook Type: " + (usesCoheCommand ? "✓ CLI Command (auto-updating)" : "○ Bash Script (legacy)"));
-    console.log(`  ${hookCommand}`);
+  console.log(`Overall Status: ${allHooksInstalled ? "✓ All Installed" : someHooksInstalled ? "⚠ Partial" : "✗ Not Installed"}`);
+  console.log("");
+  console.log("Installed Hooks:");
+  for (const hook of hooks) {
+    const status = hook.registered ? "✓" : "○";
+    const typeLabel = {
+      "auto-rotate": "Auto-rotate",
+      format: "Format files",
+      notify: "Notifications"
+    }[hook.hookType];
+    console.log(`  ${status} ${hook.name}: ${typeLabel}`);
+    if (hook.registered) {
+      console.log(`    ${hook.command}`);
+    }
   }
   console.log("");
-  console.log("Legacy Hook Script: " + (scriptExists ? scriptExecutable ? "✓ Found" : "⚠ Not Executable" : "○ Not Found (using CLI command)"));
+  console.log(`Legacy Hook Script: ${scriptExists ? scriptExecutable ? "✓ Found" : "⚠ Not Executable" : "○ Not Found"}`);
   if (scriptExists) {
     console.log(`  ${hookScriptPath}`);
   }
   console.log("");
-  console.log(`Registered in Settings: ${hookRegistered ? "✓ Yes" : "✗ No"}`);
-  if (settingsFound && !hookRegistered) {
+  console.log(`Registered in Settings: ${settingsFound ? "✓ Yes" : "✗ No"}`);
+  if (settingsFound && !someHooksInstalled) {
     console.log(`  ${settingsFilePath}`);
   }
   console.log("");
   console.log(`Rotation Enabled: ${rotationEnabled ? "✓ Yes" : "○ No"}`);
   console.log(`Rotation Strategy: ${rotationStrategy}`);
   console.log("");
-  if (!isFullyInstalled) {
-    warning("Hooks are not fully installed. Run 'cohe hooks setup' to install.");
+  if (!allHooksInstalled) {
+    warning(`Run 'cohe hooks setup' to install missing hooks.`);
   } else if (rotationEnabled) {
-    success("Hooks are installed and rotation is enabled! Auto-rotation will work with both Claude CLI and ACP.");
+    success("All hooks are installed and rotation is enabled!");
   } else {
-    warning("Hooks are installed but rotation is disabled. Enable it with 'cohe auto enable'.");
-  }
-  if (process.env.CLAUDE_HOOK_DEBUG) {
-    info("");
-    info("Debug mode enabled. Check ~/.claude/hooks-debug.log for details.");
+    warning("Hooks installed but rotation is disabled. Run 'cohe auto enable'.");
   }
 }
 var init_hooks_handler = __esm(() => {
   init_logger();
+});
+
+// src/oclif/base.tsx
+import { Command } from "@oclif/core";
+import { render } from "ink";
+function checkMiniMaxGroupId() {
+  try {
+    const config = loadConfig();
+    const minimaxAccounts = Object.values(config.accounts).filter((a) => a.provider === "minimax" && a.isActive && !a.groupId);
+    if (minimaxAccounts.length > 0) {
+      console.warn(`
+⚠️  Warning:`);
+      for (const account of minimaxAccounts) {
+        console.warn(`  MiniMax account "${account.name}" is missing groupId. Run \`cohe account edit ${account.id}\` to set it.`);
+        console.warn("  Usage data may be incomplete.");
+      }
+      console.warn("");
+    }
+  } catch {}
+}
+var BaseCommand;
+var init_base = __esm(() => {
+  init_accounts_config();
+  BaseCommand = class BaseCommand extends Command {
+    static enableJsonFlag = true;
+    flags;
+    args;
+    inkInstance = null;
+    async init() {
+      checkMiniMaxGroupId();
+      try {
+        const { args, flags } = await this.parse({
+          flags: this.ctor.flags,
+          baseFlags: super.ctor.baseFlags,
+          enableJsonFlag: this.ctor.enableJsonFlag,
+          args: this.ctor.args,
+          strict: this.ctor.strict
+        });
+        this.flags = flags;
+        this.args = args;
+      } catch (error2) {
+        this.flags = {};
+        this.args = {};
+        if (this.ctor.strict === false) {} else {
+          throw error2;
+        }
+      }
+    }
+    async renderApp(element, options) {
+      const { autoExit, ...renderOptions } = options || {};
+      this.inkInstance = render(element, renderOptions);
+      const shouldAutoExit = autoExit ?? !process.stdout.isTTY;
+      if (shouldAutoExit) {
+        setTimeout(() => {
+          if (this.inkInstance) {
+            this.inkInstance.unmount();
+          }
+        }, 150);
+      }
+      await this.inkInstance.waitUntilExit();
+    }
+    renderStatic(element, options) {
+      this.inkInstance = render(element, options);
+      return this.inkInstance;
+    }
+    unmount() {
+      if (this.inkInstance) {
+        this.inkInstance.unmount();
+        this.inkInstance = null;
+      }
+    }
+    rerender(element) {
+      if (this.inkInstance) {
+        this.inkInstance.rerender(element);
+      }
+    }
+    async catch(err) {
+      this.unmount();
+      throw err;
+    }
+    async finally(_) {}
+  };
+});
+
+// src/ui/components/divider.tsx
+import { Box, Text } from "ink";
+import { jsxDEV } from "react/jsx-dev-runtime";
+var init_divider = () => {};
+
+// src/ui/components/section.tsx
+import { Box as Box2, Text as Text2 } from "ink";
+import { jsxDEV as jsxDEV2 } from "react/jsx-dev-runtime";
+function Section({ title, children }) {
+  return /* @__PURE__ */ jsxDEV2(Box2, {
+    flexDirection: "column",
+    marginY: 1,
+    children: [
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        children: "─".repeat(50)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        bold: true,
+        children: [
+          " ",
+          title
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        children: "─".repeat(50)
+      }, undefined, false, undefined, this),
+      children && /* @__PURE__ */ jsxDEV2(Box2, {
+        marginTop: 1,
+        children
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}
+var init_section = () => {};
+
+// src/ui/components/status-badge.tsx
+import { Text as Text3 } from "ink";
+import { jsxDEV as jsxDEV3 } from "react/jsx-dev-runtime";
+function StatusBadge({
+  level,
+  children,
+  showTimestamp = false
+}) {
+  const color = LEVEL_COLORS[level];
+  const prefix = LEVEL_PREFIXES2[level];
+  const timestamp = new Date().toISOString().split("T")[1].split(".")[0];
+  return /* @__PURE__ */ jsxDEV3(Text3, {
+    color,
+    children: [
+      showTimestamp && `[${timestamp}] `,
+      prefix,
+      " ",
+      children
+    ]
+  }, undefined, true, undefined, this);
+}
+function Success({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "success",
+    children
+  }, undefined, false, undefined, this);
+}
+function Info({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "info",
+    children
+  }, undefined, false, undefined, this);
+}
+function Warning({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "warning",
+    children
+  }, undefined, false, undefined, this);
+}
+var LEVEL_COLORS, LEVEL_PREFIXES2;
+var init_status_badge = __esm(() => {
+  LEVEL_COLORS = {
+    trace: "magenta",
+    debug: "gray",
+    info: "cyan",
+    success: "green",
+    warning: "yellow",
+    error: "red"
+  };
+  LEVEL_PREFIXES2 = {
+    trace: "→",
+    debug: "↪",
+    info: "ℹ",
+    success: "✓",
+    warning: "⚠",
+    error: "✗"
+  };
+});
+
+// src/ui/components/Table.tsx
+import { Box as Box3, Text as Text4 } from "ink";
+import { jsxDEV as jsxDEV4 } from "react/jsx-dev-runtime";
+var init_Table = () => {};
+
+// src/ui/components/index.ts
+var init_components = __esm(() => {
+  init_divider();
+  init_section();
+  init_status_badge();
+  init_Table();
+});
+
+// src/ui/prompts/confirm.tsx
+import { ConfirmInput } from "@inkjs/ui";
+import { Box as Box4, render as render2, Text as Text5, useApp } from "ink";
+import { useState } from "react";
+import { jsxDEV as jsxDEV5 } from "react/jsx-dev-runtime";
+var init_confirm = () => {};
+
+// src/ui/prompts/multi-select.tsx
+import { MultiSelect as InkMultiSelect } from "@inkjs/ui";
+import { Box as Box5, render as render3, Text as Text6, useApp as useApp2 } from "ink";
+import { useState as useState2 } from "react";
+import { jsxDEV as jsxDEV6 } from "react/jsx-dev-runtime";
+var init_multi_select = () => {};
+
+// src/ui/prompts/password-input.tsx
+import { PasswordInput as InkPasswordInput } from "@inkjs/ui";
+import { Box as Box6, render as render4, Text as Text7, useApp as useApp3 } from "ink";
+import { useState as useState3 } from "react";
+import { jsxDEV as jsxDEV7 } from "react/jsx-dev-runtime";
+var init_password_input = () => {};
+
+// src/ui/prompts/select.tsx
+import { Select as InkSelect } from "@inkjs/ui";
+import { Box as Box7, render as render5, Text as Text8, useApp as useApp4 } from "ink";
+import { useState as useState4 } from "react";
+import { jsxDEV as jsxDEV8 } from "react/jsx-dev-runtime";
+var init_select = () => {};
+
+// src/ui/prompts/text-input.tsx
+import { TextInput as InkTextInput } from "@inkjs/ui";
+import { Box as Box8, render as render6, Text as Text9, useApp as useApp5 } from "ink";
+import { useState as useState5 } from "react";
+import { jsxDEV as jsxDEV9 } from "react/jsx-dev-runtime";
+var init_text_input = () => {};
+
+// src/ui/prompts/index.ts
+var init_prompts2 = __esm(() => {
+  init_confirm();
+  init_multi_select();
+  init_password_input();
+  init_select();
+  init_text_input();
+});
+
+// src/ui/index.ts
+var init_ui = __esm(() => {
+  init_components();
+  init_prompts2();
+});
+
+// src/commands/hooks/post-tool.tsx
+var exports_post_tool = {};
+__export(exports_post_tool, {
+  default: () => PostTool
+});
+import { spawn } from "node:child_process";
+import * as fs5 from "node:fs";
+import { existsSync as existsSync5 } from "node:fs";
+import * as path5 from "node:path";
+import { Box as Box9, Text as Text10 } from "ink";
+import { jsxDEV as jsxDEV10 } from "react/jsx-dev-runtime";
+function hasCommand(cmd) {
+  try {
+    const which = spawn("which", [cmd], {
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    return new Promise((resolve) => {
+      which.on("close", (code) => resolve(code === 0));
+      which.on("error", () => resolve(false));
+    });
+  } catch {
+    return false;
+  }
+}
+async function runCommand(cmd, args) {
+  return new Promise((resolve) => {
+    const proc = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (data) => stdout += data.toString());
+    proc.stderr.on("data", (data) => stderr += data.toString());
+    proc.on("close", (code) => {
+      resolve({ success: code === 0, stdout, stderr });
+    });
+    proc.on("error", () => {
+      resolve({ success: false, stdout, stderr });
+    });
+  });
+}
+async function formatBiome(file) {
+  if (!await hasCommand("biome"))
+    return false;
+  const result = await runCommand("biome", ["format", "--write", file]);
+  return result.success;
+}
+async function formatJson(file) {
+  if (!await hasCommand("jq"))
+    return false;
+  const tmpFile = `${file}.tmp_${Date.now()}`;
+  try {
+    fs5.writeFileSync(tmpFile, fs5.readFileSync(file));
+    const result = await runCommand("jq", [".", "-o", tmpFile, file]);
+    if (result.success) {
+      fs5.renameSync(tmpFile, file);
+      return true;
+    }
+    if (existsSync5(tmpFile))
+      fs5.unlinkSync(tmpFile);
+  } catch {
+    if (existsSync5(tmpFile))
+      fs5.unlinkSync(tmpFile);
+  }
+  return false;
+}
+async function formatGo(file) {
+  if (!await hasCommand("gofmt"))
+    return false;
+  const result = await runCommand("gofmt", ["-w", file]);
+  return result.success;
+}
+async function formatRust(file) {
+  if (!await hasCommand("rustfmt"))
+    return false;
+  const result = await runCommand("rustfmt", [file]);
+  return result.success;
+}
+async function formatPython(file) {
+  let formatted = false;
+  if (await hasCommand("black")) {
+    await runCommand("black", [file]);
+    formatted = true;
+  }
+  if (await hasCommand("isort")) {
+    await runCommand("isort", ["--quiet", file]);
+    formatted = true;
+  }
+  return formatted;
+}
+async function formatCpp(file) {
+  if (!await hasCommand("clang-format"))
+    return false;
+  const result = await runCommand("clang-format", ["-i", file]);
+  return result.success;
+}
+async function formatShell(file) {
+  if (!await hasCommand("shfmt"))
+    return false;
+  const result = await runCommand("shfmt", ["-w", "-i", "2", file]);
+  return result.success;
+}
+async function formatPrettier(file) {
+  if (!await hasCommand("prettier"))
+    return false;
+  const result = await runCommand("prettier", ["--write", file]);
+  return result.success;
+}
+async function formatYq(file) {
+  if (!await hasCommand("yq"))
+    return false;
+  const result = await runCommand("yq", ["eval", "-i", file]);
+  return result.success;
+}
+async function formatTaplo(file) {
+  if (!await hasCommand("taplo"))
+    return false;
+  const result = await runCommand("taplo", ["fmt", file]);
+  return result.success;
+}
+async function formatFile(file) {
+  if (!existsSync5(file)) {
+    return { file, success: false, formatted: false };
+  }
+  const filename = path5.basename(file);
+  if (filename.startsWith(".") && filename !== ".Biome") {
+    return { file, success: true, formatted: false };
+  }
+  const ext = path5.extname(file).slice(1).toLowerCase();
+  const base = path5.basename(file, path5.extname(file));
+  if (ext === base) {
+    return { file, success: true, formatted: false };
+  }
+  let formatted = false;
+  let success2 = true;
+  switch (ext) {
+    case "js":
+    case "mjs":
+    case "cjs":
+    case "ts":
+    case "mts":
+    case "cts":
+    case "jsx":
+    case "tsx":
+    case "json":
+    case "jsonc":
+    case "json5":
+    case "css":
+    case "scss":
+    case "sass":
+    case "less":
+    case "gql":
+    case "graphql": {
+      if (await formatBiome(file)) {
+        formatted = true;
+      } else if (ext.startsWith("json")) {
+        await formatJson(file);
+      }
+      break;
+    }
+    case "html":
+    case "htm":
+    case "xhtml":
+    case "md":
+    case "markdown": {
+      if (await formatPrettier(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "go": {
+      if (await formatGo(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "rs": {
+      if (await formatRust(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "py":
+    case "pyi": {
+      if (await formatPython(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "c":
+    case "cpp":
+    case "cxx":
+    case "cc":
+    case "h":
+    case "hpp":
+    case "hxx":
+    case "m":
+    case "mm": {
+      if (await formatCpp(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "sh":
+    case "bash":
+    case "zsh":
+    case "fish": {
+      if (await formatShell(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "yaml":
+    case "yml": {
+      if (await formatYq(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    case "toml": {
+      if (await formatTaplo(file)) {
+        formatted = true;
+      }
+      break;
+    }
+    default: {
+      success2 = true;
+    }
+  }
+  return { file, success: success2, formatted };
+}
+function extractFilePathFromInput(input3) {
+  try {
+    const data = JSON.parse(input3);
+    if (data.file_path)
+      return data.file_path;
+    if (data.path)
+      return data.path;
+    if (data.file)
+      return data.file;
+    if (data.destination)
+      return data.destination;
+    if (data.target)
+      return data.target;
+    if (data.tool_input) {
+      const toolInput = typeof data.tool_input === "string" ? JSON.parse(data.tool_input) : data.tool_input;
+      if (toolInput.file_path)
+        return toolInput.file_path;
+      if (toolInput.path)
+        return toolInput.path;
+      if (toolInput.file)
+        return toolInput.file;
+      if (toolInput.destination)
+        return toolInput.destination;
+      if (toolInput.target)
+        return toolInput.target;
+    }
+  } catch {}
+  return null;
+}
+var PostTool;
+var init_post_tool = __esm(() => {
+  init_base();
+  init_ui();
+  PostTool = class PostTool extends BaseCommand {
+    static description = "Format files after Write|Edit operations (PostToolUse hook)";
+    static examples = [
+      "<%= config.bin %> hooks post-tool --verbose src/file.ts",
+      "<%= config.bin %> hooks post-tool --all",
+      "cohe hooks post-tool --silent < input.json"
+    ];
+    static flags = {
+      silent: {
+        description: "Run silently without output",
+        shorthand: "s",
+        type: "boolean"
+      },
+      verbose: {
+        description: "Show detailed output",
+        shorthand: "v",
+        type: "boolean"
+      },
+      all: {
+        description: "Format all files in current directory",
+        shorthand: "a",
+        type: "boolean"
+      }
+    };
+    async run() {
+      const { flags } = await this.parse(PostTool);
+      const options = {
+        silent: flags.silent ?? false,
+        verbose: flags.verbose ?? false,
+        all: flags.all ?? false
+      };
+      const files = [];
+      if (this.argv.length > 0) {
+        for (const arg of this.argv) {
+          if (!arg.startsWith("-")) {
+            files.push(arg);
+          }
+        }
+      }
+      if (files.length === 0 && !options.all) {
+        const stdin = fs5.readFileSync("/dev/stdin", "utf-8");
+        const filePath = extractFilePathFromInput(stdin);
+        if (filePath && existsSync5(filePath)) {
+          files.push(filePath);
+        }
+      }
+      if (options.all) {
+        const entries = fs5.readdirSync(".", { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isFile() && !entry.name.startsWith(".")) {
+            files.push(entry.name);
+          }
+        }
+      }
+      if (files.length === 0) {
+        if (!options.silent) {
+          await this.renderApp(/* @__PURE__ */ jsxDEV10(Section, {
+            title: "Post-Tool Format",
+            children: [
+              /* @__PURE__ */ jsxDEV10(Info, {
+                children: "No files to format."
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
+                  dimmed: true,
+                  children: "Usage: cohe hooks post-tool [--verbose] [--all] [files...]"
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this));
+        }
+        return;
+      }
+      const results = [];
+      for (const file of files) {
+        const result = await formatFile(file);
+        results.push(result);
+      }
+      const formattedCount = results.filter((r) => r.formatted).length;
+      const errorCount = results.filter((r) => !r.success).length;
+      if (!options.silent) {
+        if (options.verbose) {
+          for (const result of results) {
+            if (result.formatted) {
+              results.push(result);
+            }
+          }
+        }
+        await this.renderApp(/* @__PURE__ */ jsxDEV10(Section, {
+          title: "Post-Tool Format",
+          children: /* @__PURE__ */ jsxDEV10(Box9, {
+            flexDirection: "column",
+            children: [
+              options.verbose && results.map((r) => /* @__PURE__ */ jsxDEV10(Box9, {
+                children: r.formatted ? /* @__PURE__ */ jsxDEV10(Success, {
+                  children: r.file
+                }, undefined, false, undefined, this) : r.success ? /* @__PURE__ */ jsxDEV10(Text10, {
+                  color: "gray",
+                  children: r.file
+                }, undefined, false, undefined, this) : /* @__PURE__ */ jsxDEV10(Warning, {
+                  children: r.file
+                }, undefined, false, undefined, this)
+              }, r.file, false, undefined, this)),
+              /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
+                  children: [
+                    "Formatted:",
+                    " ",
+                    /* @__PURE__ */ jsxDEV10(Text10, {
+                      bold: true,
+                      color: "green",
+                      children: formattedCount
+                    }, undefined, false, undefined, this),
+                    " ",
+                    "file(s)"
+                  ]
+                }, undefined, true, undefined, this)
+              }, undefined, false, undefined, this),
+              errorCount > 0 && /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
+                  color: "yellow",
+                  children: [
+                    errorCount,
+                    " file(s) could not be formatted"
+                  ]
+                }, undefined, true, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        }, undefined, false, undefined, this));
+      }
+    }
+  };
+});
+
+// src/commands/hooks/stop.tsx
+var exports_stop = {};
+__export(exports_stop, {
+  default: () => HooksStop
+});
+import { spawn as spawn2 } from "node:child_process";
+import * as fs6 from "node:fs";
+import { existsSync as existsSync6 } from "node:fs";
+import * as path6 from "node:path";
+import { Box as Box10, Text as Text11 } from "ink";
+import { jsxDEV as jsxDEV11 } from "react/jsx-dev-runtime";
+function extractMessageFromTranscript(transcriptPath, maxLength = 100) {
+  if (!existsSync6(transcriptPath)) {
+    return "Task completed";
+  }
+  try {
+    const content = fs6.readFileSync(transcriptPath, "utf-8");
+    const lines = content.trim().split(`
+`);
+    for (let i = lines.length - 1;i >= 0; i--) {
+      const line = lines[i].trim();
+      if (!line)
+        continue;
+      try {
+        const entry = JSON.parse(line);
+        let role = "";
+        let content2 = null;
+        if (entry.message && typeof entry.message === "object") {
+          role = entry.message.role || "";
+          content2 = entry.message.content;
+        } else if (entry.role) {
+          role = entry.role;
+          content2 = entry.content;
+        }
+        if (role === "user" && content2 !== null) {
+          let message = "";
+          if (Array.isArray(content2)) {
+            const textParts = [];
+            for (const block of content2) {
+              if (block && typeof block === "object") {
+                const text = block.text || "";
+                if (text)
+                  textParts.push(text);
+              } else if (typeof block === "string") {
+                textParts.push(block);
+              }
+            }
+            message = textParts.join(" ");
+          } else if (typeof content2 === "string") {
+            message = content2;
+          } else if (content2 !== null) {
+            message = String(content2);
+          }
+          if (message.length > maxLength) {
+            message = message.slice(0, maxLength - 3) + "...";
+          }
+          return message;
+        }
+      } catch {}
+    }
+  } catch {}
+  return "Task completed";
+}
+function sendNotification(title, message) {
+  if (existsSync6("/usr/bin/notify-send")) {
+    spawn2("/usr/bin/notify-send", [title, message, "-i", "dialog-information"], {
+      stdio: "ignore",
+      detached: true
+    });
+    return;
+  }
+  if (existsSync6("/usr/bin/osascript")) {
+    spawn2("/usr/bin/osascript", ["-e", `display notification "${message}" with title "${title}"`], { stdio: "ignore", detached: true });
+    return;
+  }
+}
+function playSound() {
+  if (existsSync6("/usr/bin/paplay")) {
+    const soundPath = "/usr/share/sounds/freedesktop/stereo/complete.oga";
+    if (existsSync6(soundPath)) {
+      spawn2("/usr/bin/paplay", [soundPath], {
+        stdio: "ignore",
+        detached: true
+      });
+      return;
+    }
+  }
+  if (existsSync6("/usr/bin/aplay")) {
+    const soundPath = "/usr/share/sounds/alsa/Front_Center.wav";
+    if (existsSync6(soundPath)) {
+      spawn2("/usr/bin/aplay", [soundPath], { stdio: "ignore", detached: true });
+    }
+  }
+}
+function hasUncommittedChanges() {
+  const gitDir = path6.join(process.cwd(), ".git");
+  if (!existsSync6(gitDir)) {
+    return { staged: false, unstaged: false, untracked: false };
+  }
+  try {
+    const statusResult = spawn2("git", ["status", "--porcelain"], {
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    let statusOutput = "";
+    statusResult.stdout.on("data", (data) => statusOutput += data.toString());
+    return new Promise((resolve) => {
+      statusResult.on("close", () => {
+        const lines = statusOutput.trim().split(`
+`).filter(Boolean);
+        let staged = false;
+        let unstaged = false;
+        let untracked = false;
+        for (const line of lines) {
+          const status = line.slice(0, 2);
+          const firstChar = status[0];
+          const secondChar = status[1];
+          if (firstChar === "A" || firstChar === "M" || secondChar === "M") {
+            staged = true;
+          }
+          if (firstChar === " " || secondChar === " ") {
+            unstaged = true;
+          }
+          if (firstChar === "?" || secondChar === "?") {
+            untracked = true;
+          }
+        }
+        resolve({ staged, unstaged, untracked });
+      });
+      statusResult.on("error", () => {
+        resolve({ staged: false, unstaged: false, untracked: false });
+      });
+    });
+  } catch {
+    return { staged: false, unstaged: false, untracked: false };
+  }
+}
+function runGitCommand(args) {
+  return new Promise((resolve) => {
+    const proc = spawn2("git", args, { stdio: ["ignore", "pipe", "pipe"] });
+    let output = "";
+    proc.stdout.on("data", (data) => output += data.toString());
+    proc.stderr.on("data", (data) => output += data.toString());
+    proc.on("close", (code) => {
+      resolve({ success: code === 0, output });
+    });
+    proc.on("error", () => {
+      resolve({ success: false, output: "" });
+    });
+  });
+}
+var HooksStop;
+var init_stop = __esm(() => {
+  init_base();
+  init_ui();
+  HooksStop = class HooksStop extends BaseCommand {
+    static description = "Session end hook - notifications and auto-commit";
+    static examples = [
+      "<%= config.bin %> hooks stop",
+      "cohe hooks stop --silent"
+    ];
+    static flags = {
+      silent: {
+        description: "Run silently without output",
+        shorthand: "s",
+        type: "boolean"
+      },
+      verbose: {
+        description: "Show detailed output",
+        shorthand: "v",
+        type: "boolean"
+      },
+      "no-commit": {
+        description: "Skip auto-commit",
+        type: "boolean"
+      }
+    };
+    async run() {
+      const { flags } = await this.parse(HooksStop);
+      const options = {
+        silent: flags.silent ?? false,
+        verbose: flags.verbose ?? false,
+        noCommit: flags["no-commit"] ?? false
+      };
+      let transcriptPath = "";
+      try {
+        const stdin = fs6.readFileSync("/dev/stdin", "utf-8");
+        const input3 = JSON.parse(stdin);
+        transcriptPath = input3.transcript_path || "";
+      } catch {}
+      const message = extractMessageFromTranscript(transcriptPath, 100);
+      if (!options.silent || options.verbose) {
+        sendNotification("Claude Code", message);
+        playSound();
+      }
+      const changes = hasUncommittedChanges();
+      const hasChanges = changes.staged || changes.unstaged || changes.untracked;
+      if (hasChanges && !options.noCommit) {
+        if (options.verbose) {
+          console.log(`
+\uD83D\uDCDD Auto-committing changes...`);
+        }
+        await runGitCommand(["add", "-u"]);
+        if (changes.untracked) {
+          await runGitCommand(["add", "."]);
+        }
+        let commitSuccess = false;
+        let attempts = 0;
+        const maxAttempts = 3;
+        while (!commitSuccess && attempts < maxAttempts) {
+          attempts++;
+          const commitResult = await runGitCommand([
+            "commit",
+            "-m",
+            `WIP: ${message}`,
+            "--no-gpg-sign",
+            "--no-verify"
+          ]);
+          if (commitResult.success) {
+            commitSuccess = true;
+            if (!options.silent) {
+              console.log(`✅ Changes committed (attempt ${attempts})`);
+            }
+          } else {
+            if (attempts < maxAttempts) {
+              if (options.verbose) {
+                console.log(`⚠️  Commit attempt ${attempts} failed, fixing and retrying...`);
+              }
+              const { spawn: spawn3 } = await import("node:child_process");
+              await new Promise((resolve) => {
+                spawn3("bun", ["x", "ultracite", "fix"], {
+                  stdio: "inherit",
+                  shell: true
+                }).on("close", () => resolve());
+              });
+              await runGitCommand(["add", "-u", "."]);
+            }
+          }
+        }
+        if (!(commitSuccess || options.silent)) {
+          console.error("❌ Failed to commit after ${maxAttempts} attempts");
+          console.error("Please commit manually with: git add -u && git commit");
+        }
+      }
+      if (options.silent) {
+        return;
+      }
+      await this.renderApp(/* @__PURE__ */ jsxDEV11(Section, {
+        title: "Session Complete",
+        children: /* @__PURE__ */ jsxDEV11(Box10, {
+          flexDirection: "column",
+          children: [
+            /* @__PURE__ */ jsxDEV11(Box10, {
+              marginBottom: 1,
+              children: /* @__PURE__ */ jsxDEV11(Text11, {
+                children: message
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this),
+            hasChanges && options.noCommit && /* @__PURE__ */ jsxDEV11(Box10, {
+              marginTop: 1,
+              children: /* @__PURE__ */ jsxDEV11(Warning, {
+                children: "You have uncommitted changes. Use --no-commit to skip auto-commit."
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this),
+            options.verbose && /* @__PURE__ */ jsxDEV11(Box10, {
+              flexDirection: "column",
+              marginTop: 1,
+              children: [
+                /* @__PURE__ */ jsxDEV11(Info, {
+                  children: "Git status:"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsxDEV11(Box10, {
+                  marginLeft: 2,
+                  children: /* @__PURE__ */ jsxDEV11(Text11, {
+                    children: [
+                      "Staged: ",
+                      changes.staged ? "Yes" : "No",
+                      " | Unstaged:",
+                      " ",
+                      changes.unstaged ? "Yes" : "No",
+                      " | Untracked:",
+                      " ",
+                      changes.untracked ? "Yes" : "No"
+                    ]
+                  }, undefined, true, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this));
+    }
+  };
 });
 
 // package.json
@@ -1617,8 +2614,8 @@ var require_package = __commonJS((exports, module) => {
 });
 
 // src/utils/claude-spawner.ts
-import { spawn } from "node:child_process";
-import * as path5 from "node:path";
+import { spawn as spawn3 } from "node:child_process";
+import * as path7 from "node:path";
 async function spawnClaudeInstance(options) {
   const { session, prompt, timeoutMs = 120000, onOutput } = options;
   const startTime = Date.now();
@@ -1631,10 +2628,10 @@ async function spawnClaudeInstance(options) {
       error: "Claude CLI not found. Please install Claude Code."
     };
   }
-  const promptPath = path5.join(session.providerPath, ".prompt.txt");
+  const promptPath = path7.join(session.providerPath, ".prompt.txt");
   __require("node:fs").writeFileSync(promptPath, prompt);
   return new Promise((resolve) => {
-    const child = spawn(claudeCli, [
+    const child = spawn3(claudeCli, [
       "",
       "--continue",
       "--no-color",
@@ -1733,8 +2730,8 @@ async function findClaudeCli() {
 }
 async function isExecutable(filePath) {
   try {
-    const fs5 = await import("node:fs");
-    const stat = fs5.statSync(filePath);
+    const fs7 = await import("node:fs");
+    const stat = fs7.statSync(filePath);
     return stat.isFile();
   } catch {
     return false;
@@ -1743,14 +2740,14 @@ async function isExecutable(filePath) {
 var init_claude_spawner = () => {};
 
 // src/utils/isolation.ts
-import * as fs5 from "node:fs";
-import * as path6 from "node:path";
+import * as fs7 from "node:fs";
+import * as path8 from "node:path";
 function createIsolatedSession(provider, sessionId) {
   const id = sessionId || `compare_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const basePath = `/tmp/imbios-compare/${id}`;
-  const providerPath = path6.join(basePath, provider);
-  const claudeDir = path6.join(providerPath, ".claude");
-  fs5.mkdirSync(claudeDir, { recursive: true });
+  const providerPath = path8.join(basePath, provider);
+  const claudeDir = path8.join(providerPath, ".claude");
+  fs7.mkdirSync(claudeDir, { recursive: true });
   return {
     sessionId: id,
     basePath,
@@ -1812,12 +2809,12 @@ API_TIMEOUT_MS=3000000
 `;
 }
 function setupSessionFiles(session, apiKey, baseUrl, defaultModel, customInstructions) {
-  const claudeMdPath = path6.join(session.claudeDir, "CLAUDE.md");
-  fs5.writeFileSync(claudeMdPath, generateClaudeMd(session.provider, customInstructions));
-  const envPath = path6.join(session.claudeDir, ".env");
-  fs5.writeFileSync(envPath, generateEnvFile(apiKey, baseUrl, defaultModel));
-  const settingsPath = path6.join(session.claudeDir, "settings.json");
-  fs5.writeFileSync(settingsPath, JSON.stringify({
+  const claudeMdPath = path8.join(session.claudeDir, "CLAUDE.md");
+  fs7.writeFileSync(claudeMdPath, generateClaudeMd(session.provider, customInstructions));
+  const envPath = path8.join(session.claudeDir, ".env");
+  fs7.writeFileSync(envPath, generateEnvFile(apiKey, baseUrl, defaultModel));
+  const settingsPath = path8.join(session.claudeDir, "settings.json");
+  fs7.writeFileSync(settingsPath, JSON.stringify({
     version: "1.0.0",
     provider: session.provider,
     baseUrl,
@@ -1826,13 +2823,13 @@ function setupSessionFiles(session, apiKey, baseUrl, defaultModel, customInstruc
   }, null, 2));
 }
 function symlinkProjectFiles(projectPath, sessionPath) {
-  if (!fs5.existsSync(projectPath)) {
+  if (!fs7.existsSync(projectPath)) {
     return;
   }
-  const entries = fs5.readdirSync(projectPath, { withFileTypes: true });
+  const entries = fs7.readdirSync(projectPath, { withFileTypes: true });
   for (const entry of entries) {
-    const srcPath = path6.join(projectPath, entry.name);
-    const destPath = path6.join(sessionPath, entry.name);
+    const srcPath = path8.join(projectPath, entry.name);
+    const destPath = path8.join(sessionPath, entry.name);
     if (entry.name === ".claude" && entry.isDirectory()) {
       continue;
     }
@@ -1841,46 +2838,46 @@ function symlinkProjectFiles(projectPath, sessionPath) {
     }
     try {
       if (entry.isSymbolicLink()) {
-        fs5.unlinkSync(destPath);
+        fs7.unlinkSync(destPath);
       } else if (entry.isDirectory()) {
-        fs5.mkdirSync(destPath, { recursive: true });
+        fs7.mkdirSync(destPath, { recursive: true });
         symlinkProjectFiles(srcPath, destPath);
       } else if (entry.isFile()) {
-        fs5.symlinkSync(srcPath, destPath);
+        fs7.symlinkSync(srcPath, destPath);
       }
     } catch {}
   }
 }
 function cleanupSession(session) {
   try {
-    fs5.rmSync(session.basePath, { recursive: true, force: true });
+    fs7.rmSync(session.basePath, { recursive: true, force: true });
   } catch {}
 }
 function getCompareHistoryPath() {
   const configDir = `${process.env.HOME || process.env.USERPROFILE}/.claude`;
-  return path6.join(configDir, "imbios-compare", "history.json");
+  return path8.join(configDir, "imbios-compare", "history.json");
 }
 function saveCompareSession(record) {
   const historyPath = getCompareHistoryPath();
-  const historyDir = path6.dirname(historyPath);
-  fs5.mkdirSync(historyDir, { recursive: true });
+  const historyDir = path8.dirname(historyPath);
+  fs7.mkdirSync(historyDir, { recursive: true });
   let history = [];
   try {
-    if (fs5.existsSync(historyPath)) {
-      history = JSON.parse(fs5.readFileSync(historyPath, "utf-8"));
+    if (fs7.existsSync(historyPath)) {
+      history = JSON.parse(fs7.readFileSync(historyPath, "utf-8"));
     }
   } catch {}
   history.unshift(record);
   if (history.length > 100) {
     history = history.slice(0, 100);
   }
-  fs5.writeFileSync(historyPath, JSON.stringify(history, null, 2));
+  fs7.writeFileSync(historyPath, JSON.stringify(history, null, 2));
 }
 function loadCompareHistory() {
   const historyPath = getCompareHistoryPath();
   try {
-    if (fs5.existsSync(historyPath)) {
-      return JSON.parse(fs5.readFileSync(historyPath, "utf-8"));
+    if (fs7.existsSync(historyPath)) {
+      return JSON.parse(fs7.readFileSync(historyPath, "utf-8"));
     }
   } catch {}
   return [];
@@ -1892,8 +2889,8 @@ function getCompareSession(id) {
 var init_isolation = () => {};
 
 // src/commands/compare-ui.tsx
-import { Box, Text, useApp, useInput } from "ink";
-import { jsxDEV } from "react/jsx-dev-runtime";
+import { Box as Box11, Text as Text12, useApp as useApp6, useInput } from "ink";
+import { jsxDEV as jsxDEV12 } from "react/jsx-dev-runtime";
 function ComparePanel({
   title,
   color,
@@ -1901,66 +2898,66 @@ function ComparePanel({
   isActive,
   isComplete
 }) {
-  return /* @__PURE__ */ jsxDEV(Box, {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
     borderColor: color,
     borderStyle: "round",
     flexDirection: "column",
     paddingX: 1,
     width: "50%",
     children: [
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           bold: true,
           color,
           children: title
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      !result && isActive && /* @__PURE__ */ jsxDEV(Box, {
+      !result && isActive && /* @__PURE__ */ jsxDEV12(Box11, {
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "yellow",
             children: "●"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: " Initializing..."
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      !(result || isActive) && /* @__PURE__ */ jsxDEV(Box, {
+      !(result || isActive) && /* @__PURE__ */ jsxDEV12(Box11, {
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: "○"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: " Waiting..."
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      result?.error && /* @__PURE__ */ jsxDEV(Box, {
+      result?.error && /* @__PURE__ */ jsxDEV12(Box11, {
         flexDirection: "column",
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "red",
             children: "Error:"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: result.error
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      result && !result.error && /* @__PURE__ */ jsxDEV(Box, {
+      result && !result.error && /* @__PURE__ */ jsxDEV12(Box11, {
         flexDirection: "column",
         children: [
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             marginBottom: 1,
             children: [
-              /* @__PURE__ */ jsxDEV(Text, {
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 color: isComplete ? "green" : "yellow",
                 children: isComplete ? "●" : "○"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsxDEV(Text, {
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 children: [
                   " ",
                   isComplete ? "Complete" : "Running..."
@@ -1968,36 +2965,36 @@ function ComparePanel({
               }, undefined, true, undefined, this)
             ]
           }, undefined, true, undefined, this),
-          result.timeMs > 0 && /* @__PURE__ */ jsxDEV(Text, {
+          result.timeMs > 0 && /* @__PURE__ */ jsxDEV12(Text12, {
             children: [
               "Time: ",
               (result.timeMs / 1000).toFixed(2),
               "s"
             ]
           }, undefined, true, undefined, this),
-          result.tokens !== undefined && /* @__PURE__ */ jsxDEV(Text, {
+          result.tokens !== undefined && /* @__PURE__ */ jsxDEV12(Text12, {
             children: [
               "Tokens: ",
               result.tokens.toLocaleString()
             ]
           }, undefined, true, undefined, this),
-          result.cost !== undefined && /* @__PURE__ */ jsxDEV(Text, {
+          result.cost !== undefined && /* @__PURE__ */ jsxDEV12(Text12, {
             children: [
               "Cost: $",
               result.cost.toFixed(6)
             ]
           }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             marginTop: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               children: "Output preview:"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             borderStyle: "single",
             height: 10,
             paddingLeft: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               children: [
                 result.output.slice(0, 500),
                 result.output.length > 500 && "..."
@@ -2016,36 +3013,36 @@ function CompareUI({
   onCancel,
   winner
 }) {
-  const { exit } = useApp();
-  useInput((input2, key) => {
-    if (input2 === "q" || key.return && zaiResult && minimaxResult) {
+  const { exit } = useApp6();
+  useInput((input3, key) => {
+    if (input3 === "q" || key.return && zaiResult && minimaxResult) {
       exit();
     }
-    if (input2 === "\x03") {
+    if (input3 === "\x03") {
       onCancel();
       exit();
     }
   });
   const isComplete = !!zaiResult && !!minimaxResult;
-  return /* @__PURE__ */ jsxDEV(Box, {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
     flexDirection: "column",
     padding: 1,
     children: [
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           bold: true,
           children: "ImBIOS Provider Comparison"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: "Prompt: "
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: [
               prompt.slice(0, 60),
               prompt.length > 60 && "..."
@@ -2053,21 +3050,21 @@ function CompareUI({
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         flexDirection: "row",
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(ComparePanel, {
+          /* @__PURE__ */ jsxDEV12(ComparePanel, {
             color: "blue",
             isActive: !(zaiResult || isComplete),
             isComplete: !!zaiResult,
             result: zaiResult,
             title: "Z.AI (GLM)"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             width: "1"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(ComparePanel, {
+          /* @__PURE__ */ jsxDEV12(ComparePanel, {
             color: "green",
             isActive: !(minimaxResult || isComplete),
             isComplete: !!minimaxResult,
@@ -2076,35 +3073,35 @@ function CompareUI({
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      isComplete && /* @__PURE__ */ jsxDEV(Box, {
+      isComplete && /* @__PURE__ */ jsxDEV12(Box11, {
         borderColor: "magenta",
         borderStyle: "round",
         flexDirection: "column",
         children: [
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
             children: [
-              /* @__PURE__ */ jsxDEV(Text, {
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 bold: true,
                 children: "Result: "
               }, undefined, false, undefined, this),
-              winner === "zai" && /* @__PURE__ */ jsxDEV(Text, {
+              winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
                 color: "blue",
                 children: "Z.AI wins!"
               }, undefined, false, undefined, this),
-              winner === "minimax" && /* @__PURE__ */ jsxDEV(Text, {
+              winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
                 color: "green",
                 children: "MiniMax wins!"
               }, undefined, false, undefined, this),
-              winner === "tie" && /* @__PURE__ */ jsxDEV(Text, {
+              winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
                 color: "yellow",
                 children: "It's a tie!"
               }, undefined, false, undefined, this)
             ]
           }, undefined, true, undefined, this),
-          zaiResult && minimaxResult && /* @__PURE__ */ jsxDEV(Box, {
+          zaiResult && minimaxResult && /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               children: [
                 "Z.AI: ",
                 (zaiResult.timeMs / 1000).toFixed(2),
@@ -2115,18 +3112,18 @@ function CompareUI({
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             paddingBottom: 1,
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               color: "gray",
               children: "Press Q or Enter to exit"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      !isComplete && /* @__PURE__ */ jsxDEV(Box, {
-        children: /* @__PURE__ */ jsxDEV(Text, {
+      !isComplete && /* @__PURE__ */ jsxDEV12(Box11, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           color: "gray",
           children: "Press Ctrl+C to cancel"
         }, undefined, false, undefined, this)
@@ -2141,22 +3138,22 @@ function HistoryItem({
   winner,
   isSelected
 }) {
-  return /* @__PURE__ */ jsxDEV(Box, {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
     flexDirection: "column",
     paddingX: 2,
     paddingY: 1,
     children: [
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: isSelected ? "green" : undefined,
             children: isSelected ? ">" : " "
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             bold: true,
             children: id.slice(0, 12)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: [
               " ",
@@ -2165,9 +3162,9 @@ function HistoryItem({
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         paddingLeft: 2,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           color: "gray",
           children: [
             prompt.slice(0, 50),
@@ -2175,22 +3172,22 @@ function HistoryItem({
           ]
         }, undefined, true, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         paddingLeft: 2,
         children: [
-          winner === "zai" && /* @__PURE__ */ jsxDEV(Text, {
+          winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "blue",
             children: "Winner: Z.AI"
           }, undefined, false, undefined, this),
-          winner === "minimax" && /* @__PURE__ */ jsxDEV(Text, {
+          winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "green",
             children: "Winner: MiniMax"
           }, undefined, false, undefined, this),
-          winner === "tie" && /* @__PURE__ */ jsxDEV(Text, {
+          winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "yellow",
             children: "Tie"
           }, undefined, false, undefined, this),
-          !winner && /* @__PURE__ */ jsxDEV(Text, {
+          !winner && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: "No result"
           }, undefined, false, undefined, this)
@@ -2214,32 +3211,32 @@ function HistoryList({
       onView(sessions[selectedIndex].id);
     }
   });
-  return /* @__PURE__ */ jsxDEV(Box, {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
     flexDirection: "column",
     children: [
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         padding: 1,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           bold: true,
           children: "Comparison History"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      sessions.length === 0 ? /* @__PURE__ */ jsxDEV(Box, {
+      sessions.length === 0 ? /* @__PURE__ */ jsxDEV12(Box11, {
         padding: 2,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           color: "gray",
           children: "No comparison sessions found."
         }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this) : sessions.map((session, index) => /* @__PURE__ */ jsxDEV(HistoryItem, {
+      }, undefined, false, undefined, this) : sessions.map((session, index) => /* @__PURE__ */ jsxDEV12(HistoryItem, {
         id: session.id,
         isSelected: index === selectedIndex,
         prompt: session.prompt,
         timestamp: session.timestamp,
         winner: session.winner
       }, session.id, false, undefined, this)),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         padding: 1,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           color: "gray",
           children: "Use arrow keys to navigate, Enter to view details"
         }, undefined, false, undefined, this)
@@ -2251,18 +3248,18 @@ function SessionDetail({
   session,
   onBack
 }) {
-  useInput((input2) => {
-    if (input2 === "q" || input2 === "\x1B") {
+  useInput((input3) => {
+    if (input3 === "q" || input3 === "\x1B") {
       onBack();
     }
   });
-  return /* @__PURE__ */ jsxDEV(Box, {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
     flexDirection: "column",
     padding: 1,
     children: [
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
-        children: /* @__PURE__ */ jsxDEV(Text, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           bold: true,
           children: [
             "Session: ",
@@ -2270,145 +3267,145 @@ function SessionDetail({
           ]
         }, undefined, true, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: "Time: "
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: session.timestamp
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             color: "gray",
             children: "Prompt: "
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             children: session.prompt
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      session.winner && /* @__PURE__ */ jsxDEV(Box, {
+      session.winner && /* @__PURE__ */ jsxDEV12(Box11, {
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Text, {
+          /* @__PURE__ */ jsxDEV12(Text12, {
             bold: true,
             children: "Winner: "
           }, undefined, false, undefined, this),
-          session.winner === "zai" && /* @__PURE__ */ jsxDEV(Text, {
+          session.winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "blue",
             children: "Z.AI"
           }, undefined, false, undefined, this),
-          session.winner === "minimax" && /* @__PURE__ */ jsxDEV(Text, {
+          session.winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "green",
             children: "MiniMax"
           }, undefined, false, undefined, this),
-          session.winner === "tie" && /* @__PURE__ */ jsxDEV(Text, {
+          session.winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
             color: "yellow",
             children: "Tie"
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         borderStyle: "round",
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               bold: true,
               color: "blue",
               children: "Z.AI Result"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this),
-          session.zaiResult ? /* @__PURE__ */ jsxDEV(Box, {
+          session.zaiResult ? /* @__PURE__ */ jsxDEV12(Box11, {
             flexDirection: "column",
             paddingX: 1,
             children: [
-              /* @__PURE__ */ jsxDEV(Text, {
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 children: [
                   "Time: ",
                   (session.zaiResult.timeMs / 1000).toFixed(2),
                   "s"
                 ]
               }, undefined, true, undefined, this),
-              session.zaiResult.error ? /* @__PURE__ */ jsxDEV(Text, {
+              session.zaiResult.error ? /* @__PURE__ */ jsxDEV12(Text12, {
                 color: "red",
                 children: [
                   "Error: ",
                   session.zaiResult.error
                 ]
-              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV(Box, {
+              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
                 height: 15,
                 paddingTop: 1,
-                children: /* @__PURE__ */ jsxDEV(Text, {
+                children: /* @__PURE__ */ jsxDEV12(Text12, {
                   children: session.zaiResult.output.slice(0, 1000)
                 }, undefined, false, undefined, this)
               }, undefined, false, undefined, this)
             ]
-          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV(Box, {
+          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               color: "gray",
               children: "No result"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
         borderStyle: "round",
         marginBottom: 1,
         children: [
-          /* @__PURE__ */ jsxDEV(Box, {
+          /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               bold: true,
               color: "green",
               children: "MiniMax Result"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this),
-          session.minimaxResult ? /* @__PURE__ */ jsxDEV(Box, {
+          session.minimaxResult ? /* @__PURE__ */ jsxDEV12(Box11, {
             flexDirection: "column",
             paddingX: 1,
             children: [
-              /* @__PURE__ */ jsxDEV(Text, {
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 children: [
                   "Time: ",
                   (session.minimaxResult.timeMs / 1000).toFixed(2),
                   "s"
                 ]
               }, undefined, true, undefined, this),
-              session.minimaxResult.error ? /* @__PURE__ */ jsxDEV(Text, {
+              session.minimaxResult.error ? /* @__PURE__ */ jsxDEV12(Text12, {
                 color: "red",
                 children: [
                   "Error: ",
                   session.minimaxResult.error
                 ]
-              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV(Box, {
+              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
                 height: 15,
                 paddingTop: 1,
-                children: /* @__PURE__ */ jsxDEV(Text, {
+                children: /* @__PURE__ */ jsxDEV12(Text12, {
                   children: session.minimaxResult.output.slice(0, 1000)
                 }, undefined, false, undefined, this)
               }, undefined, false, undefined, this)
             ]
-          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV(Box, {
+          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
             paddingX: 1,
-            children: /* @__PURE__ */ jsxDEV(Text, {
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               color: "gray",
               children: "No result"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsxDEV(Box, {
-        children: /* @__PURE__ */ jsxDEV(Text, {
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
           color: "gray",
           children: "Press Q to go back"
         }, undefined, false, undefined, this)
@@ -2424,9 +3421,9 @@ __export(exports_compare, {
   handleCompare: () => handleCompare
 });
 import * as readline from "node:readline";
-import { render } from "ink";
-import { useState } from "react";
-import { jsxDEV as jsxDEV2 } from "react/jsx-dev-runtime";
+import { render as render7 } from "ink";
+import { useState as useState6 } from "react";
+import { jsxDEV as jsxDEV13 } from "react/jsx-dev-runtime";
 async function readInteractiveInput() {
   return new Promise((resolve) => {
     console.log("");
@@ -2532,7 +3529,7 @@ function parseCompareArgs(args) {
 }
 async function readStdin() {
   try {
-    const { readFileSync: readFileSync6 } = await import("node:fs");
+    const { readFileSync: readFileSync8 } = await import("node:fs");
     if (!process.stdin.isTTY) {
       const chunks = [];
       for await (const chunk of process.stdin) {
@@ -2570,9 +3567,9 @@ async function runComparison(options) {
   const projectPath = process.cwd();
   symlinkProjectFiles(projectPath, zaiSession.providerPath);
   symlinkProjectFiles(projectPath, minimaxSession.providerPath);
-  const [zaiResult, setZaiResult] = useState(null);
-  const [minimaxResult, setMiniMaxResult] = useState(null);
-  const [_isComplete, setIsComplete] = useState(false);
+  const [zaiResult, setZaiResult] = useState6(null);
+  const [minimaxResult, setMiniMaxResult] = useState6(null);
+  const [_isComplete, setIsComplete] = useState6(false);
   const cleanup = () => {
     cleanupSession(zaiSession);
     cleanupSession(minimaxSession);
@@ -2645,7 +3642,7 @@ async function runComparison(options) {
       };
       saveCompareSession(record);
     }
-    const { waitUntilExit } = render(/* @__PURE__ */ jsxDEV2(CompareUI, {
+    const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(CompareUI, {
       minimaxResult,
       onCancel: cleanup,
       prompt,
@@ -2670,12 +3667,12 @@ async function showHistoryList() {
     prompt: s.prompt,
     winner: s.winner
   }));
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [viewSessionId, setViewSessionId] = useState(null);
+  const [selectedIndex, setSelectedIndex] = useState6(0);
+  const [viewSessionId, setViewSessionId] = useState6(null);
   if (viewSessionId) {
     const session = getCompareSession(viewSessionId);
     if (session) {
-      const { waitUntilExit } = render(/* @__PURE__ */ jsxDEV2(SessionDetail, {
+      const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(SessionDetail, {
         onBack: () => setViewSessionId(null),
         session: {
           ...session,
@@ -2686,7 +3683,7 @@ async function showHistoryList() {
       setViewSessionId(null);
     }
   } else {
-    const { waitUntilExit } = render(/* @__PURE__ */ jsxDEV2(HistoryList, {
+    const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(HistoryList, {
       onSelect: setSelectedIndex,
       onView: setViewSessionId,
       selectedIndex,
@@ -2706,7 +3703,7 @@ async function viewSession(sessionId) {
     info("Use 'cohe compare history' to list sessions.");
     return;
   }
-  const { waitUntilExit } = render(/* @__PURE__ */ jsxDEV2(SessionDetail, {
+  const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(SessionDetail, {
     onBack: () => {},
     session: {
       ...session,
@@ -2753,8 +3750,32 @@ var init_compare = __esm(() => {
 });
 
 // src/commands/index.ts
+async function withRetry(operation, context, validator, maxRetries = 3) {
+  let lastError = null;
+  for (let attempt = 1;attempt <= maxRetries; attempt++) {
+    try {
+      const result = await operation();
+      if (validator && !validator(result)) {
+        throw new Error("Validation failed");
+      }
+      if (attempt > 1) {
+        process.stderr.write("\r" + " ".repeat(60) + "\r");
+      }
+      return result;
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        process.stderr.write(`\r  ⏳ Retrying ${context}... (${attempt}/${maxRetries})`);
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        process.stderr.write("\r" + " ".repeat(60) + "\r");
+      }
+    }
+  }
+  return null;
+}
 async function handleConfig() {
-  section("ImBIOS Configuration");
+  section("COHE Configuration");
   const providers = await checkbox("Select API providers:", ["zai", "minimax"]);
   for (const provider of providers) {
     const existingConfig = getProviderConfig(provider);
@@ -2794,7 +3815,7 @@ async function handleSwitch(args) {
   info(`Default model: ${config.defaultModel}`);
 }
 async function handleStatus() {
-  section("ImBIOS Status");
+  section("COHE Status");
   const activeProvider = getActiveProvider();
   const provider = PROVIDERS[activeProvider]();
   const config = provider.getConfig();
@@ -2817,7 +3838,7 @@ async function handleStatus() {
     info("");
     info(`Active Profile: ${activeProfile.name}`);
   }
-  const v2Config = loadConfigV2();
+  const v2Config = loadConfig();
   const activeAccount = getActiveAccount();
   if (activeAccount) {
     info("");
@@ -2826,7 +3847,7 @@ async function handleStatus() {
   }
 }
 async function handleUsage(verbose = false) {
-  const config = loadConfigV2();
+  const config = loadConfig();
   const accounts = Object.values(config.accounts).filter((a) => a.isActive);
   if (accounts.length === 0) {
     info("No active accounts found.");
@@ -2839,21 +3860,38 @@ async function handleUsage(verbose = false) {
   console.log("");
   for (const account of accounts) {
     const provider = PROVIDERS[account.provider]();
-    const usage = await provider.getUsage({
+    const usage = await withRetry(() => provider.getUsage({
       apiKey: account.apiKey,
       groupId: account.groupId
-    });
-    const isActive = config.activeAccountId === account.id;
-    const activeMark = isActive ? " →" : "  ";
-    const accountStatus = isActive ? " [Active provider]" : "";
-    console.log(`${activeMark} ${account.name} (${account.provider})${accountStatus}`);
+    }), `${account.name} usage fetch`, (result) => result.limit > 0);
+    const isActiveModel = config.activeModelProviderId === account.id;
+    const isActiveMcp = config.activeMcpProviderId === account.id;
+    const isActiveAccount = config.activeAccountId === account.id;
+    let statusIndicator = "  ";
+    let statusText = "";
+    if (isActiveModel && isActiveMcp) {
+      statusIndicator = " →";
+      statusText = " [Active: Model + MCP]";
+    } else if (isActiveModel) {
+      statusIndicator = " →";
+      statusText = " [Active: Model]";
+    } else if (isActiveMcp) {
+      statusIndicator = " →";
+      statusText = " [Active: MCP]";
+    } else if (isActiveAccount) {
+      statusIndicator = " →";
+      statusText = " [Active account]";
+    }
+    console.log(`${statusIndicator} ${account.name} (${account.provider})${statusText}`);
     if (account.provider === "minimax" && !account.groupId) {
       console.log("     ⚠️  Missing groupId - usage data may be incomplete");
     }
-    if (usage.limit > 0) {
+    if (usage && usage.limit > 0) {
       if (account.provider === "zai" && usage.modelUsage && usage.mcpUsage) {
-        console.log(`     Model: ${Math.round(usage.modelUsage.percentUsed)}%`);
-        console.log(`     MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`);
+        const modelMark = isActiveModel ? "* " : "  ";
+        const mcpMark = isActiveMcp ? "* " : "  ";
+        console.log(`     ${modelMark}Model: ${Math.round(usage.modelUsage.percentUsed)}%`);
+        console.log(`     ${mcpMark}MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`);
         if (verbose) {
           console.log("     Model:");
           console.log(`       Used:      ${Math.round(usage.modelUsage.used)}`);
@@ -2865,8 +3903,9 @@ async function handleUsage(verbose = false) {
           console.log(`       Remaining: ${Math.round(usage.mcpUsage.remaining)}`);
         }
       } else {
-        const displayPercent = usage.percentRemaining ?? usage.percentUsed;
-        console.log(`     Usage: ${Math.round(displayPercent)}%`);
+        const displayPercent = usage.percentUsed;
+        const mark = isActiveModel ? "* " : "  ";
+        console.log(`     ${mark}Usage: ${Math.round(displayPercent)}%`);
         if (verbose) {
           console.log(`     Used:      ${Math.round(usage.used)}`);
           console.log(`     Limit:     ${Math.round(usage.limit)}`);
@@ -2887,6 +3926,8 @@ async function handleUsage(verbose = false) {
     }
     console.log("");
   }
+  console.log("──────────────────────────────────────────────────");
+  console.log(" Legend: → = Active provider, * = Active for Model/MCP");
   console.log("──────────────────────────────────────────────────");
 }
 async function handleHistory() {
@@ -2973,7 +4014,7 @@ async function handleDoctor() {
   const activeProvider = getActiveProvider();
   const provider = PROVIDERS[activeProvider]();
   const config = provider.getConfig();
-  const configPath = getConfigPath();
+  const configPath = getConfigPath2();
   checks.push([
     "Config file exists",
     __require("node:fs").existsSync(configPath)
@@ -3008,7 +4049,7 @@ async function handleEnv(action) {
     const activeProvider = getActiveProvider();
     const provider = PROVIDERS[activeProvider]();
     const config = provider.getConfig();
-    const envScript = `# ImBIOS Environment Variables
+    const envScript = `# COHE Environment Variables
 export ANTHROPIC_AUTH_TOKEN="${config.apiKey}"
 export ANTHROPIC_BASE_URL="${config.baseUrl}"
 export ANTHROPIC_MODEL="${config.defaultModel}"
@@ -3136,7 +4177,7 @@ async function handleProfile(args) {
     }
     default:
       console.log(`
-ImBIOS Profile Management
+COHE Profile Management
 
 Usage: cohe profile <command> [options]
 
@@ -3226,7 +4267,7 @@ async function handleAccount(args) {
         error("Usage: cohe account edit <id>");
         return;
       }
-      const config = loadConfigV2();
+      const config = loadConfig();
       const account = config.accounts[id];
       if (!account) {
         error(`Account "${id}" not found.`);
@@ -3291,7 +4332,7 @@ async function handleAccount(args) {
     }
     default:
       console.log(`
-ImBIOS Multi-Account Management
+COHE Multi-Account Management
 
 Usage: cohe account <command> [options]
 
@@ -3343,7 +4384,7 @@ async function handleDashboard(args) {
     }
     case "status": {
       section("Dashboard Status");
-      const config = loadConfigV2();
+      const config = loadConfig();
       table({
         Enabled: config.dashboard.enabled ? "Yes" : "No",
         Port: config.dashboard.port.toString(),
@@ -3353,13 +4394,13 @@ async function handleDashboard(args) {
       break;
     }
     default: {
-      const config = loadConfigV2();
+      const config = loadConfig();
       if (config.dashboard.enabled) {
         const { startDashboard: startDashboard2 } = await Promise.resolve().then(() => (init_dashboard(), exports_dashboard));
         startDashboard2();
       } else {
         console.log(`
-ImBIOS Web Dashboard
+COHE Web Dashboard
 
 Usage: cohe dashboard <command> [options]
 
@@ -3395,37 +4436,48 @@ async function handleHooks(args) {
       await handleHooksStatus2();
       break;
     }
+    case "post-tool": {
+      const { default: PostTool2 } = await Promise.resolve().then(() => (init_post_tool(), exports_post_tool));
+      await new PostTool2(["hooks", "post-tool", ...args.slice(1)]).run();
+      break;
+    }
+    case "stop": {
+      const { default: HooksStop2 } = await Promise.resolve().then(() => (init_stop(), exports_stop));
+      await new HooksStop2(["hooks", "stop", ...args.slice(1)]).run();
+      break;
+    }
     default: {
       console.log(`
-ImBIOS Claude Code Hooks Management
+COHE Claude Code Hooks Management
 
-Hooks enable auto-rotation for both direct Claude CLI and ACP usage.
+Hooks enable auto-rotation, formatting, and notifications.
 
 Usage: cohe hooks <command>
 
 Commands:
-  setup       Install hooks globally in ~/.claude/
-  uninstall   Remove hooks
+  setup       Install all hooks globally in ~/.claude/
+  uninstall   Remove all hooks
   status      Check hook installation status
+  post-tool   Format files after Write|Edit (PostToolUse hook)
+  stop        Session end notifications + commit prompt (Stop hook)
+
+Installed Hooks:
+  SessionStart  Auto-rotate API keys on startup
+  PostToolUse   Format files after Write|Edit
+  Stop          Notifications + commit prompt on session end
 
 How it works:
-  When you start Claude (with 'claude' or through ACP), the SessionStart hook
-  automatically rotates your API keys to the least-used account.
+  - SessionStart: Rotates API keys when you start Claude
+  - PostToolUse: Runs 'cohe hooks post-tool' after file writes
+  - Stop: Sends notifications and prompts to commit on session end
 
-Configuration:
-  Hooks respect your rotation settings in ~/.claude/imbios.json:
-  - Rotation: enabled by default
-  - Strategy: least-used by default
-  - Cross-provider: enabled by default
-
-  Change settings with: cohe auto enable <strategy>
+All hooks use the cohe CLI directly, so they auto-update with the package.
 
 Examples:
-  cohe hooks setup           # Install hooks
+  cohe hooks setup           # Install all hooks
   cohe hooks status          # Check installation
-  cohe auto status           # Check rotation settings
-  cohe auto enable priority  # Change rotation strategy
-  cohe hooks uninstall       # Remove hooks
+  cohe hooks post-tool       # Run formatter manually
+  cohe hooks uninstall       # Remove all hooks
 `);
     }
   }
@@ -3435,7 +4487,7 @@ async function handleAlert(args) {
   switch (action) {
     case "list": {
       section("Usage Alerts");
-      const config = loadConfigV2();
+      const config = loadConfig();
       config.alerts.forEach((alert) => {
         const status = alert.enabled ? "enabled" : "disabled";
         console.log(`  ${alert.id}: ${alert.type} @ ${alert.threshold}% [${status}]`);
@@ -3445,7 +4497,7 @@ async function handleAlert(args) {
     case "add": {
       const type = await select("Alert type:", ["usage", "quota"]);
       const threshold = Number.parseInt(await input("Threshold (%):", "80"), 10);
-      const config = loadConfigV2();
+      const config = loadConfig();
       const alert = {
         id: `alert_${Date.now()}`,
         type,
@@ -3453,7 +4505,7 @@ async function handleAlert(args) {
         enabled: true
       };
       config.alerts.push(alert);
-      saveConfigV2(config);
+      saveConfig(config);
       success(`Alert added: ${type} @ ${threshold}%`);
       break;
     }
@@ -3470,7 +4522,7 @@ async function handleAlert(args) {
     }
     default:
       console.log(`
-ImBIOS Alert Management
+COHE Alert Management
 
 Usage: cohe alert <command> [options]
 
@@ -3613,9 +4665,9 @@ async function handleMcp(args) {
         return;
       }
       section(`Testing MCP Server: ${name}`);
-      const { spawn: spawn2 } = __require("node:child_process");
+      const { spawn: spawn4 } = __require("node:child_process");
       info(`Running: ${server.command} ${server.args.join(" ")}`);
-      const child = spawn2(server.command, server.args, {
+      const child = spawn4(server.command, server.args, {
         env: { ...process.env, ...getMcpEnvForServer(name) },
         stdio: ["pipe", "pipe", "pipe"]
       });
@@ -3655,7 +4707,7 @@ async function handleMcp(args) {
     }
     default:
       console.log(`
-ImBIOS MCP Server Management v1.0.0
+COHE MCP Server Management v2.0.0
 
 Usage: cohe mcp <command> [options]
 
@@ -3725,19 +4777,19 @@ Examples:
   cohe hooks setup         # Install auto-rotate hooks
   eval "$(cohe env export)"  # Export env vars
 
-For more info, visit: https://github.com/ImBIOS/coding-helper
+For more info, visit: https://github.com/ImBIOS/cohe
 `);
 }
 async function handleVersion() {
   const pkg = await Promise.resolve().then(() => __toESM(require_package(), 1));
-  console.log(`ImBIOS v${pkg.version}`);
+  console.log(`COHE v${pkg.version}`);
 }
 async function handleCompare2(args) {
   const { handleCompare: compareHandler } = await Promise.resolve().then(() => (init_compare(), exports_compare));
   await compareHandler(args);
 }
 async function handleClaude(args) {
-  const { spawn: spawn2 } = await import("node:child_process");
+  const { spawn: spawn4 } = await import("node:child_process");
   const { execSync } = await import("node:child_process");
   let claudePath = null;
   try {
@@ -3748,7 +4800,7 @@ async function handleClaude(args) {
     error("Claude CLI not found. Please install Claude Code first.");
     return;
   }
-  const config = loadConfigV2();
+  const config = loadConfig();
   if (config.rotation.enabled) {
     const accounts = listAccounts();
     if (accounts.length > 1) {
@@ -3787,7 +4839,7 @@ async function handleClaude(args) {
     if (legacyProvider === "minimax") {
       childEnv2.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
     }
-    const child2 = spawn2(claudePath, args, {
+    const child2 = spawn4(claudePath, args, {
       stdio: "inherit",
       env: childEnv2
     });
@@ -3805,7 +4857,7 @@ async function handleClaude(args) {
   if (activeAccount.provider === "minimax") {
     childEnv.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
   }
-  const child = spawn2(claudePath, args, {
+  const child = spawn4(claudePath, args, {
     stdio: "inherit",
     env: childEnv
   });
@@ -3820,7 +4872,7 @@ async function handleAuto(args) {
       const strategy = args[1];
       const crossProvider = args.includes("--cross-provider");
       configureRotation(true, strategy, crossProvider);
-      const config = loadConfigV2();
+      const config = loadConfig();
       success("Auto-rotation enabled.");
       info(`Strategy: ${config.rotation.strategy}`);
       info(`Cross-provider: ${config.rotation.crossProvider ? "enabled" : "disabled"}`);
@@ -3833,7 +4885,7 @@ async function handleAuto(args) {
     }
     case "status": {
       section("Auto-Rotation Status");
-      const config = loadConfigV2();
+      const config = loadConfig();
       table({
         Enabled: config.rotation.enabled ? "Yes" : "No",
         Strategy: config.rotation.strategy,
@@ -3866,20 +4918,28 @@ async function handleAuto(args) {
         return;
       }
       const settingsPath = `${process.env.HOME}/.claude/settings.json`;
-      const fs6 = await import("node:fs");
+      const fs8 = await import("node:fs");
       const _path = await import("node:path");
-      if (fs6.existsSync(settingsPath)) {
+      if (fs8.existsSync(settingsPath)) {
         try {
-          const settingsContent = fs6.readFileSync(settingsPath, "utf-8");
+          const settingsContent = fs8.readFileSync(settingsPath, "utf-8");
           const settings = JSON.parse(settingsContent);
           const env = {
             ANTHROPIC_AUTH_TOKEN: currentAccount.apiKey,
             ANTHROPIC_BASE_URL: currentAccount.baseUrl,
-            API_TIMEOUT_MS: "3000000"
+            API_TIMEOUT_MS: "3000000",
+            CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
+            DISABLE_NON_ESSENTIAL_MODEL_CALLS: "1",
+            ENABLE_BACKGROUND_TASKS: "1",
+            FORCE_AUTO_BACKGROUND_TASKS: "1",
+            CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL: "1",
+            MAX_THINKING_TOKENS: "50000",
+            DISABLE_TELEMETRY: "1",
+            DISABLE_ERROR_REPORTING: "1",
+            CLAUDE_CODE_DEBUG: "1",
+            CLAUDE_CODE_VERBOSE_LOGGING: "1",
+            CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
           };
-          if (currentAccount.provider === "minimax") {
-            env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
-          }
           settings.env = env;
           const glmPlugins = [
             "glm-plan-usage@zai-coding-plugins",
@@ -3902,14 +4962,14 @@ async function handleAuto(args) {
               }
             }
           }
-          fs6.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
+          fs8.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
         } catch (err) {
           if (!silent) {
             error(`Failed to update settings.json: ${err.message}`);
           }
         }
       }
-      const config = loadConfigV2();
+      const config = loadConfig();
       if (config.rotation.enabled) {
         setImmediate(async () => {
           try {
@@ -3921,7 +4981,7 @@ async function handleAuto(args) {
     }
     default: {
       console.log(`
-ImBIOS Auto-Rotation
+COHE Auto-Rotation
 
 Usage: cohe auto <command> [options]
 

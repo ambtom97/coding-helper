@@ -34,7 +34,7 @@ export default class Status extends BaseCommand<typeof Status> {
     const activeProfile = profiles.getActiveProfile();
 
     // v2 account info
-    const v2Config = accountsConfig.loadConfigV2();
+    const v2Config = accountsConfig.loadConfig();
     const activeAccount = accountsConfig.getActiveAccount();
 
     await this.renderApp(

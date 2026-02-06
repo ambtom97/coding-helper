@@ -1,7 +1,7 @@
 import { Command, type Interfaces } from "@oclif/core";
 import { type Instance, type RenderOptions, render } from "ink";
 import type React from "react";
-import { loadConfigV2 } from "../config/accounts-config.js";
+import { loadConfig } from "../config/accounts-config.js";
 
 export type InferredFlags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof BaseCommand)["baseFlags"] & T["flags"]
@@ -15,7 +15,7 @@ export type InferredArgs<T extends typeof Command> = Interfaces.InferredArgs<
  */
 function checkMiniMaxGroupId(): void {
   try {
-    const config = loadConfigV2();
+    const config = loadConfig();
     const minimaxAccounts = Object.values(config.accounts).filter(
       (a) => a.provider === "minimax" && a.isActive && !a.groupId
     );

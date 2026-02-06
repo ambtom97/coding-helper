@@ -47,7 +47,7 @@ export default class Claude extends BaseCommand<typeof Claude> {
       this.error("Claude CLI not found. Please install Claude Code first.");
     }
 
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
 
     // Check if auto-rotation is enabled
     if (config.rotation.enabled) {

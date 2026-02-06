@@ -9,7 +9,7 @@ import {
 describe("SDK Auto-Rotation", () => {
   describe("performAutoRotation", () => {
     test("returns rotated: false when rotation is disabled", async () => {
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       accountsConfig.configureRotation(false);
 
       const result = await performAutoRotation();

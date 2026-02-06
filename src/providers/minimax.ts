@@ -102,8 +102,8 @@ export class MiniMaxProvider implements Provider {
 
       const modelRemains = data.model_remains[0];
       const limit = modelRemains.current_interval_total_count;
-      const used = modelRemains.current_interval_usage_count;
-      const remaining = Math.max(0, limit - used);
+      const remaining = modelRemains.current_interval_usage_count; // This field is actually "remaining", not "used"
+      const used = Math.max(0, limit - remaining);
       const percentUsed = limit > 0 ? (used / limit) * 100 : 0;
       const percentRemaining = limit > 0 ? (remaining / limit) * 100 : 0;
 

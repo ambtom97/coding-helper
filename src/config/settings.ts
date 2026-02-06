@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-export interface ImBIOSConfig {
+export interface COHEConfig {
   provider: "zai" | "minimax";
   zai?: {
     apiKey: string;
@@ -42,7 +42,7 @@ export function loadConfig(): ImBIOSConfig {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
       const content = fs.readFileSync(CONFIG_PATH, "utf-8");
-      return JSON.parse(content) as ImBIOSConfig;
+      return JSON.parse(content) as COHEConfig;
     }
   } catch {
     // Ignore errors

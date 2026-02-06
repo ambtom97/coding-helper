@@ -34,7 +34,7 @@ export default class AutoEnable extends BaseCommand<typeof AutoEnable> {
     const crossProvider = this.flags["cross-provider"];
 
     accountsConfig.configureRotation(true, strategy, crossProvider);
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
 
     await this.renderApp(
       <Box flexDirection="column">

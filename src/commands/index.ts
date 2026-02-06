@@ -22,8 +22,56 @@ const PROVIDERS: Record<string, () => Provider> = {
   minimax: () => minimaxProvider,
 };
 
+/**
+ * Retry wrapper for async operations with visual feedback
+ * @param operation - The async operation to retry
+ * @param context - Context for error messages
+ * @param validator - Optional function to validate if result is acceptable
+ * @param maxRetries - Maximum number of retry attempts (default: 3)
+ * @returns The result of the operation or null if all retries fail
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  context: string,
+  validator?: (result: T) => boolean,
+  maxRetries = 3
+): Promise<T | null> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await operation();
+
+      // If validator provided and returns false, treat as failure and retry
+      if (validator && !validator(result)) {
+        throw new Error("Validation failed");
+      }
+
+      // Clear retry message if we showed one
+      if (attempt > 1) {
+        process.stderr.write("\r" + " ".repeat(60) + "\r");
+      }
+
+      return result;
+    } catch (err) {
+      lastError = err as Error;
+      if (attempt < maxRetries) {
+        // Show retry message
+        process.stderr.write(
+          `\r  ⏳ Retrying ${context}... (${attempt}/${maxRetries})`
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        // Clear the retry message
+        process.stderr.write("\r" + " ".repeat(60) + "\r");
+      }
+    }
+  }
+  return null;
+}
+
 export async function handleConfig(): Promise<void> {
-  section("ImBIOS Configuration");
+  section("COHE Configuration");
 
   const providers = await checkbox("Select API providers:", ["zai", "minimax"]);
 
@@ -84,7 +132,7 @@ export async function handleSwitch(args: string[]): Promise<void> {
 }
 
 export async function handleStatus(): Promise<void> {
-  section("ImBIOS Status");
+  section("COHE Status");
 
   const activeProvider = settings.getActiveProvider();
   const provider = PROVIDERS[activeProvider]();
@@ -123,7 +171,7 @@ export async function handleStatus(): Promise<void> {
   }
 
   // Show v2 accounts if using
-  const v2Config = accountsConfig.loadConfigV2();
+  const v2Config = accountsConfig.loadConfig();
   const activeAccount = accountsConfig.getActiveAccount();
   if (activeAccount) {
     info("");
@@ -137,7 +185,7 @@ export async function handleStatus(): Promise<void> {
 }
 
 export async function handleUsage(verbose = false): Promise<void> {
-  const config = accountsConfig.loadConfigV2();
+  const config = accountsConfig.loadConfig();
   const accounts = Object.values(config.accounts).filter((a) => a.isActive);
 
   if (accounts.length === 0) {
@@ -153,17 +201,40 @@ export async function handleUsage(verbose = false): Promise<void> {
 
   for (const account of accounts) {
     const provider = PROVIDERS[account.provider]();
-    const usage = await provider.getUsage({
-      apiKey: account.apiKey,
-      groupId: account.groupId,
-    });
+    const usage = await withRetry(
+      () =>
+        provider.getUsage({
+          apiKey: account.apiKey,
+          groupId: account.groupId,
+        }),
+      `${account.name} usage fetch`,
+      // Retry if usage data is invalid (limit <= 0)
+      (result) => result.limit > 0
+    );
 
-    const isActive = config.activeAccountId === account.id;
-    const activeMark = isActive ? " →" : "  ";
-    const accountStatus = isActive ? " [Active provider]" : "";
+    const isActiveModel = config.activeModelProviderId === account.id;
+    const isActiveMcp = config.activeMcpProviderId === account.id;
+    const isActiveAccount = config.activeAccountId === account.id;
+
+    let statusIndicator = "  ";
+    let statusText = "";
+
+    if (isActiveModel && isActiveMcp) {
+      statusIndicator = " →";
+      statusText = " [Active: Model + MCP]";
+    } else if (isActiveModel) {
+      statusIndicator = " →";
+      statusText = " [Active: Model]";
+    } else if (isActiveMcp) {
+      statusIndicator = " →";
+      statusText = " [Active: MCP]";
+    } else if (isActiveAccount) {
+      statusIndicator = " →";
+      statusText = " [Active account]";
+    }
 
     console.log(
-      `${activeMark} ${account.name} (${account.provider})${accountStatus}`
+      `${statusIndicator} ${account.name} (${account.provider})${statusText}`
     );
 
     // Warning for missing groupId on MiniMax
@@ -171,11 +242,17 @@ export async function handleUsage(verbose = false): Promise<void> {
       console.log("     ⚠️  Missing groupId - usage data may be incomplete");
     }
 
-    if (usage.limit > 0) {
+    if (usage && usage.limit > 0) {
       // For ZAI, show model and MCP usage separately
       if (account.provider === "zai" && usage.modelUsage && usage.mcpUsage) {
-        console.log(`     Model: ${Math.round(usage.modelUsage.percentUsed)}%`);
-        console.log(`     MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`);
+        const modelMark = isActiveModel ? "* " : "  ";
+        const mcpMark = isActiveMcp ? "* " : "  ";
+        console.log(
+          `     ${modelMark}Model: ${Math.round(usage.modelUsage.percentUsed)}%`
+        );
+        console.log(
+          `     ${mcpMark}MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`
+        );
 
         // Show details in verbose mode
         if (verbose) {
@@ -197,9 +274,11 @@ export async function handleUsage(verbose = false): Promise<void> {
         }
       } else {
         // For MiniMax or when no split data available
-        // MiniMax shows percentRemaining (what's left), not percentUsed
-        const displayPercent = usage.percentRemaining ?? usage.percentUsed;
-        console.log(`     Usage: ${Math.round(displayPercent)}%`);
+        // Show actual usage percentage (what's used), not what's remaining
+        // This is consistent with the "least-used" rotation strategy
+        const displayPercent = usage.percentUsed;
+        const mark = isActiveModel ? "* " : "  ";
+        console.log(`     ${mark}Usage: ${Math.round(displayPercent)}%`);
 
         // Show details in verbose mode
         if (verbose) {
@@ -225,6 +304,8 @@ export async function handleUsage(verbose = false): Promise<void> {
     console.log("");
   }
 
+  console.log("──────────────────────────────────────────────────");
+  console.log(" Legend: → = Active provider, * = Active for Model/MCP");
   console.log("──────────────────────────────────────────────────");
 }
 
@@ -386,7 +467,7 @@ export async function handleEnv(action?: string): Promise<void> {
     const provider = PROVIDERS[activeProvider]();
     const config = provider.getConfig();
 
-    const envScript = `# ImBIOS Environment Variables
+    const envScript = `# COHE Environment Variables
 export ANTHROPIC_AUTH_TOKEN="${config.apiKey}"
 export ANTHROPIC_BASE_URL="${config.baseUrl}"
 export ANTHROPIC_MODEL="${config.defaultModel}"
@@ -557,7 +638,7 @@ export async function handleProfile(args: string[]): Promise<void> {
 
     default:
       console.log(`
-ImBIOS Profile Management
+COHE Profile Management
 
 Usage: cohe profile <command> [options]
 
@@ -680,7 +761,7 @@ export async function handleAccount(args: string[]): Promise<void> {
         return;
       }
 
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       const account = config.accounts[id];
 
       if (!account) {
@@ -764,7 +845,7 @@ export async function handleAccount(args: string[]): Promise<void> {
 
     default:
       console.log(`
-ImBIOS Multi-Account Management
+COHE Multi-Account Management
 
 Usage: cohe account <command> [options]
 
@@ -825,7 +906,7 @@ export async function handleDashboard(args: string[]): Promise<void> {
 
     case "status": {
       section("Dashboard Status");
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       table({
         Enabled: config.dashboard.enabled ? "Yes" : "No",
         Port: config.dashboard.port.toString(),
@@ -838,13 +919,13 @@ export async function handleDashboard(args: string[]): Promise<void> {
     }
 
     default: {
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       if (config.dashboard.enabled) {
         const { startDashboard } = await import("../commands/dashboard.js");
         startDashboard();
       } else {
         console.log(`
-ImBIOS Web Dashboard
+COHE Web Dashboard
 
 Usage: cohe dashboard <command> [options]
 
@@ -902,7 +983,7 @@ export async function handleHooks(args: string[]): Promise<void> {
 
     default: {
       console.log(`
-ImBIOS Claude Code Hooks Management
+COHE Claude Code Hooks Management
 
 Hooks enable auto-rotation, formatting, and notifications.
 
@@ -943,7 +1024,7 @@ export async function handleAlert(args: string[]): Promise<void> {
   switch (action) {
     case "list": {
       section("Usage Alerts");
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
 
       config.alerts.forEach((alert) => {
         const status = alert.enabled ? "enabled" : "disabled";
@@ -960,7 +1041,7 @@ export async function handleAlert(args: string[]): Promise<void> {
         await input("Threshold (%):", "80"),
         10
       );
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
 
       const alert = {
         id: `alert_${Date.now()}`,
@@ -970,7 +1051,7 @@ export async function handleAlert(args: string[]): Promise<void> {
       };
 
       config.alerts.push(alert);
-      accountsConfig.saveConfigV2(config);
+      accountsConfig.saveConfig(config);
       success(`Alert added: ${type} @ ${threshold}%`);
       break;
     }
@@ -990,7 +1071,7 @@ export async function handleAlert(args: string[]): Promise<void> {
 
     default:
       console.log(`
-ImBIOS Alert Management
+COHE Alert Management
 
 Usage: cohe alert <command> [options]
 
@@ -1223,7 +1304,7 @@ export async function handleMcp(args: string[]): Promise<void> {
 
     default:
       console.log(`
-ImBIOS MCP Server Management v1.0.0
+COHE MCP Server Management v2.0.0
 
 Usage: cohe mcp <command> [options]
 
@@ -1294,13 +1375,13 @@ Examples:
   cohe hooks setup         # Install auto-rotate hooks
   eval "$(cohe env export)"  # Export env vars
 
-For more info, visit: https://github.com/ImBIOS/coding-helper
+For more info, visit: https://github.com/ImBIOS/cohe
 `);
 }
 
 export async function handleVersion(): Promise<void> {
   const pkg = await import("../../package.json");
-  console.log(`ImBIOS v${pkg.version}`);
+  console.log(`COHE v${pkg.version}`);
 }
 
 // compare command - Side-by-side Claude comparison
@@ -1329,7 +1410,7 @@ export async function handleClaude(args: string[]): Promise<void> {
     return;
   }
 
-  const config = accountsConfig.loadConfigV2();
+  const config = accountsConfig.loadConfig();
 
   // Check if auto-rotation is enabled
   if (config.rotation.enabled) {
@@ -1445,7 +1526,7 @@ export async function handleAuto(args: string[]): Promise<void> {
       const strategy = args[1] as accountsConfig.RotationStrategy | undefined;
       const crossProvider = args.includes("--cross-provider");
       accountsConfig.configureRotation(true, strategy, crossProvider);
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       success("Auto-rotation enabled.");
       info(`Strategy: ${config.rotation.strategy}`);
       info(
@@ -1464,7 +1545,7 @@ export async function handleAuto(args: string[]): Promise<void> {
 
     case "status": {
       section("Auto-Rotation Status");
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       table({
         Enabled: config.rotation.enabled ? "Yes" : "No",
         Strategy: config.rotation.strategy,
@@ -1517,17 +1598,33 @@ export async function handleAuto(args: string[]): Promise<void> {
           const settingsContent = fs.readFileSync(settingsPath, "utf-8");
           const settings = JSON.parse(settingsContent);
 
-          // Build environment - only disable non-essential traffic for MiniMax
+          // Build environment with performance optimizations for all providers
           const env: Record<string, string | number> = {
             ANTHROPIC_AUTH_TOKEN: currentAccount.apiKey,
             ANTHROPIC_BASE_URL: currentAccount.baseUrl,
             API_TIMEOUT_MS: "3000000",
-          };
 
-          // Only MiniMax needs CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
-          if (currentAccount.provider === "minimax") {
-            env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
-          }
+            // Performance optimization
+            CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
+            DISABLE_NON_ESSENTIAL_MODEL_CALLS: "1",
+            ENABLE_BACKGROUND_TASKS: "1",
+            FORCE_AUTO_BACKGROUND_TASKS: "1",
+            CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL: "1",
+
+            // Extended thinking configuration
+            MAX_THINKING_TOKENS: "50000",
+
+            // Privacy settings
+            DISABLE_TELEMETRY: "1",
+            DISABLE_ERROR_REPORTING: "1",
+
+            // Development and debugging
+            CLAUDE_CODE_DEBUG: "1",
+            CLAUDE_CODE_VERBOSE_LOGGING: "1",
+
+            // Experimental features
+            CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1",
+          };
 
           settings.env = env;
 
@@ -1568,7 +1665,7 @@ export async function handleAuto(args: string[]): Promise<void> {
       }
 
       // Rotate for next session asynchronously
-      const config = accountsConfig.loadConfigV2();
+      const config = accountsConfig.loadConfig();
       if (config.rotation.enabled) {
         setImmediate(async () => {
           try {
@@ -1583,7 +1680,7 @@ export async function handleAuto(args: string[]): Promise<void> {
 
     default: {
       console.log(`
-ImBIOS Auto-Rotation
+COHE Auto-Rotation
 
 Usage: cohe auto <command> [options]
 

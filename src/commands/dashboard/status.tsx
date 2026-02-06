@@ -9,7 +9,7 @@ export default class DashboardStatus extends BaseCommand<
   static examples = ["<%= config.bin %> dashboard status"];
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfigV2();
+    const config = accountsConfig.loadConfig();
 
     await this.renderApp(
       <Section title="Dashboard Status">

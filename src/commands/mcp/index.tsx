@@ -17,7 +17,7 @@ export default class Mcp extends BaseCommand<typeof Mcp> {
 function McpHelp(): React.ReactElement {
   return (
     <Box flexDirection="column">
-      <Text bold>ImBIOS MCP Server Management v1.0.0</Text>
+      <Text bold>COHE MCP Server Management v2.0.0</Text>
       <Text />
       <Text>Usage: cohe mcp &lt;command&gt; [options]</Text>
       <Text />

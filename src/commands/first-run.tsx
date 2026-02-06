@@ -5,7 +5,7 @@ import { ConfirmInput, MultiSelect, PasswordInput, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
 import * as accountsConfig from "../config/accounts-config.js";
-import { loadConfigV2 } from "../config/accounts-config.js";
+import { loadConfig } from "../config/accounts-config.js";
 import * as settings from "../config/settings.js";
 import { BaseCommand } from "../oclif/base";
 import { Info, Section, Success, Warning } from "../ui/index.js";
@@ -295,7 +295,7 @@ exit 0
     setTimeout(() => exit(), 500);
   };
 
-  const config = loadConfigV2();
+  const config = loadConfig();
 
   return (
     <Section title="cohe First-Run Setup">

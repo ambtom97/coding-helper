@@ -22,7 +22,7 @@ function VersionUI({ version }: { version: string }): React.ReactElement {
 
   return (
     <Box>
-      <Text>ImBIOS v{version}</Text>
+      <Text>COHE v{version}</Text>
     </Box>
   );
 }

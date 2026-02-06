@@ -12,7 +12,7 @@ export interface McpServerConfig {
 }
 
 export interface McpConfig {
-  version: "1.0.0";
+  version: "2.0.0";
   servers: Record<string, McpServerConfig>;
   globalEnv?: Record<string, string>;
 }
@@ -23,13 +23,13 @@ export interface McpProfileConfig {
 }
 
 const DEFAULT_CONFIG: McpConfig = {
-  version: "1.0.0",
+  version: "2.0.0",
   servers: {},
   globalEnv: {},
 };
 
 export function getMcpPath(): string {
-  return `${process.env.HOME || process.env.USERPROFILE}/.claude/imbios-mcp.json`;
+  return `${process.env.HOME || process.env.USERPROFILE}/.claude/cohe-mcp.json`;
 }
 
 export function loadMcpConfig(): McpConfig {
@@ -161,7 +161,7 @@ export function generateMcpEnvExport(): string {
   const config = loadMcpConfig();
   const enabledServers = listEnabledMcpServers();
 
-  let envScript = "# ImBIOS MCP Configuration\n";
+  let envScript = "# COHE MCP Configuration\n";
 
   if (config.globalEnv && Object.keys(config.globalEnv).length > 0) {
     envScript += "# Global MCP Environment Variables\n";
@@ -172,15 +172,15 @@ export function generateMcpEnvExport(): string {
   }
 
   envScript += "# MCP Servers\n";
-  envScript += `export IMBIOS_MCP_SERVERS="${enabledServers.map((s) => s.name).join(",")}"\n\n`;
+  envScript += `export COHE_MCP_SERVERS="${enabledServers.map((s) => s.name).join(",")}"\n\n`;
 
   for (const server of enabledServers) {
     envScript += `# Server: ${server.name}\n`;
-    envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_COMMAND="${server.command}"\n`;
-    envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ARGS="${server.args.join(" ")}"\n`;
+    envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_COMMAND="${server.command}"\n`;
+    envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ARGS="${server.args.join(" ")}"\n`;
     if (server.env) {
       for (const [key, value] of Object.entries(server.env)) {
-        envScript += `export IMBIOS_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ENV_${key}="${value}"\n`;
+        envScript += `export COHE_MCP_${server.name.toUpperCase().replace(/-/g, "_")}_ENV_${key}="${value}"\n`;
       }
     }
     envScript += "\n";
