@@ -72,6 +72,7 @@ We follow Domain-Driven Design principles and use a microservices architecture.
 - Deploy to staging automatically on main branch
 - Production deploys require manual approval
 - Breaking changes require RFC discussion
+- Never use `--no-verify` when committing (bypasses pre-commit hooks)
 
 ### Common Pitfalls to Avoid
 - Don't use any dependencies in database migrations
