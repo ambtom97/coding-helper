@@ -4933,7 +4933,6 @@ async function handleAuto(args) {
             ENABLE_BACKGROUND_TASKS: "1",
             FORCE_AUTO_BACKGROUND_TASKS: "1",
             CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL: "1",
-            MAX_THINKING_TOKENS: "50000",
             DISABLE_TELEMETRY: "1",
             DISABLE_ERROR_REPORTING: "1",
             CLAUDE_CODE_DEBUG: "1",

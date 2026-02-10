@@ -1611,8 +1611,6 @@ export async function handleAuto(args: string[]): Promise<void> {
             FORCE_AUTO_BACKGROUND_TASKS: "1",
             CLAUDE_CODE_ENABLE_UNIFIED_READ_TOOL: "1",
 
-            // Extended thinking configuration
-            MAX_THINKING_TOKENS: "50000",
 
             // Privacy settings
             DISABLE_TELEMETRY: "1",

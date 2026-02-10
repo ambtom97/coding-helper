@@ -44,7 +44,7 @@ We follow Domain-Driven Design principles and use a microservices architecture.
 - Focus on user behavior, not implementation details
 - Use `data-testid` for element selection
 - Mock external dependencies, test integration at boundaries
-- Aim for 80%+ code coverage
+- Aim for 75%+ code coverage
 
 ### Database Patterns
 - Use Drizzle schema-first approach
