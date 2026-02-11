@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Success } from "../../ui/index.js";
+import * as accountsConfig from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Success } from "../../ui/index";
 
 export default class DashboardStart extends BaseCommand<typeof DashboardStart> {
   static description = "Start the web dashboard";

@@ -10,8 +10,8 @@ import * as fs from "node:fs";
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.js";
-import { Info, Section, Success, Warning } from "../../ui/index.js";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section, Success, Warning } from "../../ui/index";
 
 interface FormatOptions {
   silent: boolean;

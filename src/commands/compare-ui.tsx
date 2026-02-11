@@ -1,6 +1,6 @@
 import { Box, Text, useApp, useInput } from "ink";
 import type React from "react";
-import type { ClaudeResult } from "../utils/isolation.js";
+import type { ClaudeResult } from "../utils/isolation";
 
 interface ComparePanelProps {
   title: string;

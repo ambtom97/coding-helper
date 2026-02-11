@@ -2,16 +2,16 @@ import { PasswordInput, TextInput } from "@inkjs/ui";
 import { Args } from "@oclif/core";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import type { AccountConfig } from "../../config/accounts-config.js";
-import { loadConfig, updateAccount } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
+import type { AccountConfig } from "../../config/accounts-config";
+import { loadConfig, updateAccount } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
 import {
   Error as ErrorBadge,
   Info,
   Section,
   Success,
   Warning,
-} from "../../ui/index.js";
+} from "../../ui/index";
 
 function isRawModeSupported(): boolean {
   // Node.js ReadStream has isRawModeSupported property

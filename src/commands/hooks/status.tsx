@@ -2,13 +2,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.js";
-import {
-  Error as ErrorBadge,
-  Section,
-  Success,
-  Warning,
-} from "../../ui/index.js";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Section, Success, Warning } from "../../ui/index";
 
 interface HookCheckResult {
   name: string;

@@ -1,7 +1,7 @@
 import { Command, type Interfaces } from "@oclif/core";
 import { type Instance, type RenderOptions, render } from "ink";
 import type React from "react";
-import { loadConfig } from "../config/accounts-config.js";
+import { loadConfig } from "../config/accounts-config";
 
 export type InferredFlags<T extends typeof Command> = Interfaces.InferredFlags<
   (typeof BaseCommand)["baseFlags"] & T["flags"]

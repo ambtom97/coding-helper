@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as profiles from "../../config/profiles.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Info } from "../../ui/index.js";
+import * as profiles from "../../config/profiles";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Info } from "../../ui/index";
 
 export default class ProfileExport extends BaseCommand<typeof ProfileExport> {
   static description = "Export profile as shell variables";

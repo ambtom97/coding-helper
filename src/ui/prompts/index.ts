@@ -1,8 +1,8 @@
-export { confirm } from "./confirm.js";
-export { checkbox } from "./multi-select.js";
-export { password } from "./password-input.js";
-export { select } from "./select.js";
-export { input } from "./text-input.js";
+export { confirm } from "./confirm";
+export { checkbox } from "./multi-select";
+export { password } from "./password-input";
+export { select } from "./select";
+export { input } from "./text-input";
 
 // Re-export convenience functions for provider and model selection
 export async function providerSelection(): Promise<"zai" | "minimax"> {

@@ -1,9 +1,9 @@
 import * as readline from "node:readline";
 import { render } from "ink";
 import { useState } from "react";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
-import { spawnClaudeInstance } from "../utils/claude-spawner.js";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
+import { spawnClaudeInstance } from "../utils/claude-spawner";
 import {
   type ClaudeResult,
   type CompareSessionRecord,
@@ -14,9 +14,9 @@ import {
   saveCompareSession,
   setupSessionFiles,
   symlinkProjectFiles,
-} from "../utils/isolation.js";
-import { error, info, section, success } from "../utils/logger.js";
-import { CompareUI, HistoryList, SessionDetail } from "./compare-ui.js";
+} from "../utils/isolation";
+import { error, info, section, success } from "../utils/logger";
+import { CompareUI, HistoryList, SessionDetail } from "./compare-ui";
 
 interface CompareArgs {
   prompt?: string;

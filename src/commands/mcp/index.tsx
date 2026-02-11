@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
+import { BaseCommand } from "../../oclif/base";
 
 export default class Mcp extends BaseCommand<typeof Mcp> {
   static description = "MCP server management";

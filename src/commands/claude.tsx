@@ -1,10 +1,10 @@
 import { execSync, spawn } from "node:child_process";
-import * as accountsConfig from "../config/accounts-config.js";
-import * as settings from "../config/settings.js";
-import { BaseCommand } from "../oclif/base.tsx";
-import type { Provider } from "../providers/base.js";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
+import * as accountsConfig from "../config/accounts-config";
+import * as settings from "../config/settings";
+import { BaseCommand } from "../oclif/base";
+import type { Provider } from "../providers/base";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
 
 const PROVIDERS: Record<string, () => Provider> = {
   zai: () => zaiProvider,

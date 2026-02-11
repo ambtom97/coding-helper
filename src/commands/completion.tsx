@@ -1,9 +1,9 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import { BaseCommand } from "../oclif/base.tsx";
-import { Error as ErrorBadge, Info, Section } from "../ui/index.js";
-import { select } from "../ui/prompts/index.js";
-import { getShellCompletion } from "../utils/completion.js";
+import { BaseCommand } from "../oclif/base";
+import { Error as ErrorBadge, Info, Section } from "../ui/index";
+import { select } from "../ui/prompts/index";
+import { getShellCompletion } from "../utils/completion";
 
 const SHELLS = ["bash", "zsh", "fish"] as const;
 type Shell = (typeof SHELLS)[number];

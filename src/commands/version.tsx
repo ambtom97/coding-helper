@@ -1,6 +1,6 @@
 import { Box, Text, useApp } from "ink";
 import { useEffect } from "react";
-import { BaseCommand } from "../oclif/base.tsx";
+import { BaseCommand } from "../oclif/base";
 
 export default class Version extends BaseCommand<typeof Version> {
   static description = "Show version information";

@@ -1,9 +1,9 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
 import type React from "react";
-import { BaseCommand } from "../oclif/base.tsx";
-import { Info, Section, Table, Warning } from "../ui/index.js";
-import { select } from "../ui/prompts/index.js";
+import { BaseCommand } from "../oclif/base";
+import { Info, Section, Table, Warning } from "../ui/index";
+import { select } from "../ui/prompts/index";
 
 /**
  * TODO: add JSDoc link to re-check each model costs

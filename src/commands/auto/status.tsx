@@ -1,7 +1,7 @@
 import { Box } from "ink";
-import { getActiveAccount, loadConfig } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section, Table } from "../../ui/index.js";
+import { getActiveAccount, loadConfig } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section, Table } from "../../ui/index";
 
 export default class AutoStatus extends BaseCommand<typeof AutoStatus> {
   static description = "Show current rotation status";

@@ -1,9 +1,9 @@
 import { Args, Flags } from "@oclif/core";
 import { Box } from "ink";
-import type { RotationStrategy } from "../../config/accounts-config.js";
-import { configureRotation, loadConfig } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Success } from "../../ui/index.js";
+import type { RotationStrategy } from "../../config/accounts-config";
+import { configureRotation, loadConfig } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Success } from "../../ui/index";
 
 export default class AutoEnable extends BaseCommand<typeof AutoEnable> {
   static description = "Enable auto-rotation";

@@ -4,12 +4,12 @@ import * as path from "node:path";
 import { ConfirmInput, MultiSelect, PasswordInput, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import * as accountsConfig from "../config/accounts-config.js";
-import { loadConfig } from "../config/accounts-config.js";
-import * as settings from "../config/settings.js";
+import * as accountsConfig from "../config/accounts-config";
+import { loadConfig } from "../config/accounts-config";
+import * as settings from "../config/settings";
 import { BaseCommand } from "../oclif/base";
-import { Info, Section, Success, Warning } from "../ui/index.js";
-import { getContainerEnvVars } from "../utils/container.js";
+import { Info, Section, Success, Warning } from "../ui/index";
+import { getContainerEnvVars } from "../utils/container";
 
 const PROVIDERS = [
   { label: "Z.AI (GLM)", value: "zai" },

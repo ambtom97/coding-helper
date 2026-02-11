@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
+import * as accountsConfig from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
 
 export default class Dashboard extends BaseCommand<typeof Dashboard> {
   static description = "Web dashboard management";

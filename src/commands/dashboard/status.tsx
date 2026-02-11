@@ -1,6 +1,6 @@
-import * as accountsConfig from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Section, Table } from "../../ui/index.js";
+import * as accountsConfig from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Section, Table } from "../../ui/index";
 
 export default class DashboardStatus extends BaseCommand<
   typeof DashboardStatus

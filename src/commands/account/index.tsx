@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
+import { BaseCommand } from "../../oclif/base";
 
 export default class Account extends BaseCommand<typeof Account> {
   static description = "Multi-account management";

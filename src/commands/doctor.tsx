@@ -5,18 +5,18 @@ import * as path from "node:path";
 import { Spinner } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useEffect, useState } from "react";
-import * as settings from "../config/settings.js";
-import { BaseCommand } from "../oclif/base.tsx";
-import type { Provider } from "../providers/base.js";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
+import * as settings from "../config/settings";
+import { BaseCommand } from "../oclif/base";
+import type { Provider } from "../providers/base";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
 import {
   Error as ErrorBadge,
   Info,
   Section,
   Success,
   Warning,
-} from "../ui/index.js";
+} from "../ui/index";
 
 const PROVIDERS: Record<string, () => Provider> = {
   zai: () => zaiProvider,

@@ -1,8 +1,8 @@
 import { Flags } from "@oclif/core";
 import { Box } from "ink";
-import { rotateAcrossProviders } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Success } from "../../ui/index.js";
+import { rotateAcrossProviders } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Success } from "../../ui/index";
 
 export default class AutoRotate extends BaseCommand<typeof AutoRotate> {
   static description = "Manually trigger rotation";

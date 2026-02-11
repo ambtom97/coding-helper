@@ -6,9 +6,9 @@
  */
 
 import { type ClaudeAgentOptions, query } from "@anthropic-ai/claude-agent-sdk";
-import type { Provider } from "./providers/base.js";
-import { minimaxProvider } from "./providers/minimax.js";
-import { zaiProvider } from "./providers/zai.js";
+import type { Provider } from "./providers/base";
+import { minimaxProvider } from "./providers/minimax";
+import { zaiProvider } from "./providers/zai";
 
 type ProviderName = "minimax" | "zai";
 

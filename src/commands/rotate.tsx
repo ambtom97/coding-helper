@@ -2,9 +2,9 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as accountsConfig from "../config/accounts-config.js";
-import { BaseCommand } from "../oclif/base.tsx";
-import { Error as ErrorBadge, Info, Section, Success } from "../ui/index.js";
+import * as accountsConfig from "../config/accounts-config";
+import { BaseCommand } from "../oclif/base";
+import { Error as ErrorBadge, Info, Section, Success } from "../ui/index";
 
 export default class Rotate extends BaseCommand<typeof Rotate> {
   static description = "Rotate to next API key for a provider";

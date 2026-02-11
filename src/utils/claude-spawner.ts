@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import * as path from "node:path";
-import type { ClaudeResult, IsolatedSession } from "./isolation.js";
+import type { ClaudeResult, IsolatedSession } from "./isolation";
 
 export interface SpawnOptions {
   session: IsolatedSession;

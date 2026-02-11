@@ -33,11 +33,11 @@ import {
   query as originalQuery,
   type Query,
 } from "@anthropic-ai/claude-agent-sdk";
-import * as accountsConfig from "../config/accounts-config.js";
-import * as settings from "../config/settings.js";
-import type { Provider } from "../providers/base.js";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
+import * as accountsConfig from "../config/accounts-config";
+import * as settings from "../config/settings";
+import type { Provider } from "../providers/base";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
 
 const PROVIDERS: Record<string, () => Provider> = {
   zai: () => zaiProvider,

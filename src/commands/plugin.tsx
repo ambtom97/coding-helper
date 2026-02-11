@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as settings from "../config/settings.js";
-import { BaseCommand } from "../oclif/base.tsx";
-import { Info, Section, Success } from "../ui/index.js";
+import * as settings from "../config/settings";
+import { BaseCommand } from "../oclif/base";
+import { Info, Section, Success } from "../ui/index";
 
 export default class Plugin extends BaseCommand<typeof Plugin> {
   static description = "Manage Claude Code plugin";

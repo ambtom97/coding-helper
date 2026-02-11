@@ -1,12 +1,12 @@
 import { PasswordInput, Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import { addAccount } from "../../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Info, Section, Success } from "../../ui/index.js";
-import type { Provider } from "../providers/base.js";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
+import { addAccount } from "../../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Info, Section, Success } from "../../ui/index";
+import type { Provider } from "../providers/base";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
 
 const PROVIDERS: Record<string, () => Provider> = {
   zai: () => zaiProvider,

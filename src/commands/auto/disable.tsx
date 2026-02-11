@@ -1,7 +1,7 @@
 import { Box } from "ink";
-import { configureRotation } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Success } from "../../ui/index.js";
+import { configureRotation } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Success } from "../../ui/index";
 
 export default class AutoDisable extends BaseCommand<typeof AutoDisable> {
   static description = "Disable auto-rotation";

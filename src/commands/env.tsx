@@ -1,11 +1,11 @@
 import { Args } from "@oclif/core";
 import { Box, Text } from "ink";
 import type React from "react";
-import * as settings from "../config/settings.js";
-import { BaseCommand } from "../oclif/base.tsx";
-import type { Provider } from "../providers/base.js";
-import { minimaxProvider } from "../providers/minimax.js";
-import { zaiProvider } from "../providers/zai.js";
+import * as settings from "../config/settings";
+import { BaseCommand } from "../oclif/base";
+import type { Provider } from "../providers/base";
+import { minimaxProvider } from "../providers/minimax";
+import { zaiProvider } from "../providers/zai";
 
 const PROVIDERS: Record<string, () => Provider> = {
   zai: () => zaiProvider,

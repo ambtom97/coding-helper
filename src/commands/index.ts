@@ -1393,7 +1393,7 @@ export async function handleCompare(args: string[]): Promise<void> {
 }
 
 // Re-export for the compare module to use
-import type { handleCompare as CompareHandlerType } from "./compare.js";
+import type { handleCompare as CompareHandlerType } from "./compare";
 export type { CompareHandlerType };
 
 // claude command - Spawn claude with auto-switch
@@ -1589,8 +1589,6 @@ export async function handleAuto(args: string[]): Promise<void> {
       }
 
       // Update settings.json with current account credentials
-      // Note: We don't set ANTHROPIC_MODEL here - let providers auto-translate
-      // Anthropic model names (e.g., claude-3-5-sonnet-20241022) to their own models
       const settingsPath = `${process.env.HOME}/.claude/settings.json`;
       const fs = await import("node:fs");
       const _path = await import("node:path");
@@ -1600,10 +1598,19 @@ export async function handleAuto(args: string[]): Promise<void> {
           const settingsContent = fs.readFileSync(settingsPath, "utf-8");
           const settings = JSON.parse(settingsContent);
 
+          // Determine the model to use based on provider
+          let model = currentAccount.defaultModel;
+          if (currentAccount.provider === "zai") {
+            model = "GLM-4.7";
+          } else if (currentAccount.provider === "minimax") {
+            model = "MiniMax-M2.1";
+          }
+
           // Build environment with performance optimizations for all providers
           const env: Record<string, string | number> = {
             ANTHROPIC_AUTH_TOKEN: currentAccount.apiKey,
             ANTHROPIC_BASE_URL: currentAccount.baseUrl,
+            ANTHROPIC_MODEL: model,
             API_TIMEOUT_MS: "3000000",
 
             // Performance optimization

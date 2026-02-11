@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { trace } from "./logger.js";
+import { trace } from "./logger";
 
 const TEST_MESSAGE = "Hi";
 const TEST_MAX_TOKENS = 5;

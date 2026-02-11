@@ -2,8 +2,8 @@ import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { Flags } from "@oclif/core";
-import * as accountsConfig from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.js";
+import * as accountsConfig from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
 
 /**
  * Hook command for Claude Code SessionStart event.

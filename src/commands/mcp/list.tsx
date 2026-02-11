@@ -1,8 +1,8 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import * as mcp from "../../config/mcp.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section } from "../../ui/index.js";
+import * as mcp from "../../config/mcp";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section } from "../../ui/index";
 
 export default class McpList extends BaseCommand<typeof McpList> {
   static description = "List all configured MCP servers";

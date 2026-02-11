@@ -1,9 +1,9 @@
 import { Args } from "@oclif/core";
 import { Box, render } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Info } from "../../ui/index.js";
-import { getCompareSession } from "../../utils/isolation.js";
-import { SessionDetail } from "../compare-ui.js";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Info } from "../../ui/index";
+import { getCompareSession } from "../../utils/isolation";
+import { SessionDetail } from "../compare-ui";
 
 export default class CompareView extends BaseCommand<typeof CompareView> {
   static description = "View a specific comparison session";

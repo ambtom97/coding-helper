@@ -1,9 +1,9 @@
 import { Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import { loadConfig, saveConfig } from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Section, Success } from "../../ui/index.js";
+import { loadConfig, saveConfig } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Section, Success } from "../../ui/index";
 
 const TYPE_OPTIONS = [
   { label: "usage", value: "usage" },

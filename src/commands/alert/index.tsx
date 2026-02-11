@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
+import { BaseCommand } from "../../oclif/base";
 
 export default class Alert extends BaseCommand<typeof Alert> {
   static description = "Alert configuration";

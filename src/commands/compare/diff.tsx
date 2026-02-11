@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Section } from "../../ui/index.js";
-import { getCompareSession } from "../../utils/isolation.js";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Section } from "../../ui/index";
+import { getCompareSession } from "../../utils/isolation";
 
 export default class CompareDiff extends BaseCommand<typeof CompareDiff> {
   static description = "Compare two comparison sessions";

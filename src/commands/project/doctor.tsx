@@ -3,8 +3,8 @@ import path from "node:path";
 import { ConfirmInput, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import { BaseCommand } from "../../oclif/base.js";
-import { Section } from "../../ui/index.js";
+import { BaseCommand } from "../../oclif/base";
+import { Section } from "../../ui/index";
 
 interface ProjectHealthCheck {
   name: string;

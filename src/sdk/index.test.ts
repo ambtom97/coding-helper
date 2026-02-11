@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import * as accountsConfig from "../config/accounts-config.js";
+import * as accountsConfig from "../config/accounts-config";
 import {
   getActiveCredentials,
   getAutoRotatedEnv,
   performAutoRotation,
-} from "./index.js";
+} from "./index";
 
 describe("SDK Auto-Rotation", () => {
   describe("performAutoRotation", () => {

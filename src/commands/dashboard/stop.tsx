@@ -1,7 +1,7 @@
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Success } from "../../ui/index.js";
+import * as accountsConfig from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Success } from "../../ui/index";
 
 export default class DashboardStop extends BaseCommand<typeof DashboardStop> {
   static description = "Stop the dashboard";

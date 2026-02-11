@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as mcp from "../../config/mcp.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Info } from "../../ui/index.js";
+import * as mcp from "../../config/mcp";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Info } from "../../ui/index";
 
 export default class McpExport extends BaseCommand<typeof McpExport> {
   static description = "Export MCP configuration";

@@ -1,12 +1,9 @@
 import { render } from "ink";
 import { useState } from "react";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section } from "../../ui/index.js";
-import {
-  getCompareSession,
-  loadCompareHistory,
-} from "../../utils/isolation.js";
-import { HistoryList, SessionDetail } from "../compare-ui.js";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section } from "../../ui/index";
+import { getCompareSession, loadCompareHistory } from "../../utils/isolation";
+import { HistoryList, SessionDetail } from "../compare-ui";
 
 export default class CompareHistory extends BaseCommand<typeof CompareHistory> {
   static description = "List past comparisons";

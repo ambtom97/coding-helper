@@ -3,15 +3,15 @@ import { Spinner } from "@inkjs/ui";
 import { Args } from "@oclif/core";
 import { Box, Text, useApp } from "ink";
 import { useEffect, useState } from "react";
-import * as mcp from "../../config/mcp.js";
-import { BaseCommand } from "../../oclif/base.tsx";
+import * as mcp from "../../config/mcp";
+import { BaseCommand } from "../../oclif/base";
 import {
   Error as ErrorBadge,
   Info,
   Section,
   Success,
   Warning,
-} from "../../ui/index.js";
+} from "../../ui/index";
 
 export default class McpTest extends BaseCommand<typeof McpTest> {
   static description = "Test an MCP server connection";

@@ -1,11 +1,8 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import {
-  getActiveAccount,
-  listAccounts,
-} from "../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section } from "../../ui/index.js";
+import { getActiveAccount, listAccounts } from "../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section } from "../../ui/index";
 
 export default class AccountList extends BaseCommand<typeof AccountList> {
   static description = "List all accounts";

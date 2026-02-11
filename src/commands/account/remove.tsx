@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import { deleteAccount } from "../../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Success } from "../../ui/index.js";
+import { deleteAccount } from "../../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Success } from "../../ui/index";
 
 export default class AccountRemove extends BaseCommand<typeof AccountRemove> {
   static description = "Remove an account";

@@ -24,7 +24,7 @@ import {
   handleTest,
   handleUsage,
   handleVersion,
-} from "./index.js";
+} from "./index";
 
 // biome-ignore lint/style/noExportedImports: Re-exporting handlers from index.js for dynamic CLI command loading
 export {

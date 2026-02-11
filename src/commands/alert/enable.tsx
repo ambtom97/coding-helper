@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import { updateAlert } from "../../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Success } from "../../ui/index.js";
+import { updateAlert } from "../../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Success } from "../../ui/index";
 
 export default class AlertEnable extends BaseCommand<typeof AlertEnable> {
   static description = "Enable an alert";

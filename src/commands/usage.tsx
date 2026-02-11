@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
-import { BaseCommand } from "../oclif/base.tsx";
-import { handleUsage } from "./index.js";
+import { BaseCommand } from "../oclif/base";
+import { handleUsage } from "./index";
 
 export default class Usage extends BaseCommand<typeof Usage> {
   static description = "Query quota and usage statistics";

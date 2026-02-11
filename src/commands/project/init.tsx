@@ -3,8 +3,8 @@ import path from "node:path";
 import { ConfirmInput, MultiSelect, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import { BaseCommand } from "../../oclif/base.js";
-import { Error, Info, Section, Success, Warning } from "../../ui/index.js";
+import { BaseCommand } from "../../oclif/base";
+import { Error, Info, Section, Success, Warning } from "../../ui/index";
 
 // CLAUDE.example.md template path
 const TEMPLATE_PATH = path.resolve(process.cwd(), "CLAUDE.example.md");

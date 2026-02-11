@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as profiles from "../../config/profiles.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Success } from "../../ui/index.js";
+import * as profiles from "../../config/profiles";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Success } from "../../ui/index";
 
 export default class ProfileSwitch extends BaseCommand<typeof ProfileSwitch> {
   static description = "Switch to a profile";

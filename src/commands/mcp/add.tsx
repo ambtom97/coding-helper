@@ -1,9 +1,9 @@
 import { Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import * as mcp from "../../config/mcp.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Info, Section, Success } from "../../ui/index.js";
+import * as mcp from "../../config/mcp";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Info, Section, Success } from "../../ui/index";
 
 const PROVIDER_OPTIONS = [
   { label: "all", value: "all" },

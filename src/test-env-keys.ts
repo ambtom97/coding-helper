@@ -3,15 +3,9 @@
  * Run from project root: bun run src/test-env-keys.ts
  * Logging: set LOG_LEVEL=trace (or debug|info|warning|error); default for this script is trace.
  */
-import { minimaxProvider } from "./providers/minimax.js";
-import { zaiProvider } from "./providers/zai.js";
-import {
-  debug,
-  info,
-  error as logError,
-  success,
-  trace,
-} from "./utils/logger.js";
+import { minimaxProvider } from "./providers/minimax";
+import { zaiProvider } from "./providers/zai";
+import { debug, info, error as logError, success, trace } from "./utils/logger";
 
 if (process.env.LOG_LEVEL === undefined) {
   process.env.LOG_LEVEL = "trace";

@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import { BaseCommand } from "../../oclif/base.tsx";
+import { BaseCommand } from "../../oclif/base";
 
 export default class HooksIndex extends BaseCommand<typeof HooksIndex> {
   static description = "Manage Claude Code hooks";

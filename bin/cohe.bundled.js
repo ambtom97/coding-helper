@@ -67,11 +67,11 @@ function trace(message) {
 function table(data) {
   const maxKeyLength = Math.max(...Object.keys(data).map((k) => k.length));
   const maxValLength = Math.max(...Object.values(data).map((v) => String(v).length));
-  Object.entries(data).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(data)) {
     const paddedKey = key.padEnd(maxKeyLength);
     const paddedVal = String(value).padStart(maxValLength);
     console.log(`  ${paddedKey}  →  ${paddedVal}`);
-  });
+  }
 }
 function section(title) {
   console.log(`
@@ -1097,10 +1097,10 @@ async function checkbox(message, choices) {
   ]);
   return result;
 }
-async function providerSelection() {
+function providerSelection() {
   return select("Select API provider:", ["zai", "minimax"], 0);
 }
-async function modelSelection(models) {
+function modelSelection(models) {
   return select("Select model:", models, 0);
 }
 var init_prompts = () => {};
@@ -1762,17 +1762,17 @@ var init_status_badge = __esm(() => {
   };
 });
 
-// src/ui/components/Table.tsx
+// src/ui/components/table.tsx
 import { Box as Box3, Text as Text4 } from "ink";
 import { jsxDEV as jsxDEV4 } from "react/jsx-dev-runtime";
-var init_Table = () => {};
+var init_table = () => {};
 
 // src/ui/components/index.ts
 var init_components = __esm(() => {
   init_divider();
   init_section();
   init_status_badge();
-  init_Table();
+  init_table();
 });
 
 // src/ui/prompts/confirm.tsx
@@ -4929,9 +4929,16 @@ async function handleAuto(args) {
         try {
           const settingsContent = fs8.readFileSync(settingsPath, "utf-8");
           const settings = JSON.parse(settingsContent);
+          let model = currentAccount.defaultModel;
+          if (currentAccount.provider === "zai") {
+            model = "GLM-4.7";
+          } else if (currentAccount.provider === "minimax") {
+            model = "MiniMax-M2.1";
+          }
           const env = {
             ANTHROPIC_AUTH_TOKEN: currentAccount.apiKey,
             ANTHROPIC_BASE_URL: currentAccount.baseUrl,
+            ANTHROPIC_MODEL: model,
             API_TIMEOUT_MS: "3000000",
             CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
             DISABLE_NON_ESSENTIAL_MODEL_CALLS: "1",

@@ -1,8 +1,8 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import * as profiles from "../../config/profiles.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section } from "../../ui/index.js";
+import * as profiles from "../../config/profiles";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section } from "../../ui/index";
 
 export default class ProfileList extends BaseCommand<typeof ProfileList> {
   static description = "List all profiles";

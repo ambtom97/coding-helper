@@ -1,8 +1,8 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import { switchAccount } from "../../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Error as ErrorBadge, Success } from "../../ui/index.js";
+import { switchAccount } from "../../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Error as ErrorBadge, Success } from "../../ui/index";
 
 export default class AccountSwitch extends BaseCommand<typeof AccountSwitch> {
   static description = "Switch to an account";

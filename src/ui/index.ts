@@ -12,7 +12,7 @@ export {
   TableRow,
   Trace,
   Warning,
-} from "./components/index.js";
+} from "./components/index";
 
 // Prompts
 export {
@@ -23,4 +23,4 @@ export {
   password,
   providerSelection,
   select,
-} from "./prompts/index.js";
+} from "./prompts/index";

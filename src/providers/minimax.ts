@@ -1,4 +1,4 @@
-import { testAnthropicConnection } from "../utils/anthropic-connection-test.js";
+import { testAnthropicConnection } from "../utils/anthropic-connection-test";
 import type {
   ModelMapping,
   Provider,

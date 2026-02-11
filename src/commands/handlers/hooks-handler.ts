@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { error, info, section, success, warning } from "../../utils/logger.js";
+import { error, info, section, success, warning } from "../../utils/logger";
 
 export async function handleHooksSetup(): Promise<void> {
   const claudeSettingsPath = path.join(os.homedir(), ".claude");

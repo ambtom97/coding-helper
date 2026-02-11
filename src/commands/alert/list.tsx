@@ -1,8 +1,8 @@
 import { Box, Text } from "ink";
 import type React from "react";
-import { loadConfig } from "../../../config/accounts-config.js";
-import { BaseCommand } from "../../oclif/base.tsx";
-import { Info, Section } from "../../ui/index.js";
+import { loadConfig } from "../../../config/accounts-config";
+import { BaseCommand } from "../../oclif/base";
+import { Info, Section } from "../../ui/index";
 
 export default class AlertList extends BaseCommand<typeof AlertList> {
   static description = "List all alerts";
