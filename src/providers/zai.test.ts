@@ -318,6 +318,65 @@ describe("ZAIProvider", () => {
 
       globalThis.fetch = originalFetch;
     });
+
+    it("should handle TOKENS_LIMIT with only percentage (no usage/currentValue/remaining)", async () => {
+      process.env.ZAI_API_KEY = "test-key";
+
+      // This is the actual Z.AI API response format where TOKENS_LIMIT
+      // only has percentage without usage/currentValue/remaining fields
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            code: 200,
+            msg: "Operation successful",
+            data: {
+              limits: [
+                {
+                  type: "TOKENS_LIMIT",
+                  unit: 3,
+                  number: 5,
+                  percentage: 1,
+                  nextResetTime: 1_770_795_497_965,
+                },
+                {
+                  type: "TIME_LIMIT",
+                  unit: 5,
+                  number: 1,
+                  usage: 100,
+                  currentValue: 55,
+                  remaining: 45,
+                  percentage: 55,
+                },
+              ],
+            },
+            success: true,
+          }),
+      };
+
+      const originalFetch = globalThis.fetch;
+      globalThis.fetch = (() =>
+        Promise.resolve(
+          mockResponse as unknown as Response
+        )) as unknown as typeof fetch;
+
+      const usage = await provider.getUsage();
+
+      // Model usage should use percentage since full data is missing
+      expect(usage.used).toBe(0);
+      expect(usage.limit).toBe(0);
+      expect(usage.percentUsed).toBe(1);
+
+      // MCP usage should have full data
+      expect(usage.mcpUsage).toBeDefined();
+      expect(usage.mcpUsage?.used).toBe(55);
+      expect(usage.mcpUsage?.limit).toBe(100);
+      expect(usage.mcpUsage?.remaining).toBe(45);
+      expect(usage.mcpUsage?.percentUsed).toBe(55);
+
+      globalThis.fetch = originalFetch;
+    });
   });
 
   describe("zaiProvider singleton", () => {

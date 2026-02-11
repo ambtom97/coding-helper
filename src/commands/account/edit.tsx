@@ -2,7 +2,8 @@ import { PasswordInput, TextInput } from "@inkjs/ui";
 import { Args } from "@oclif/core";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import * as accountsConfig from "../../config/accounts-config.js";
+import type { AccountConfig } from "../../config/accounts-config.js";
+import { loadConfig, updateAccount } from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import {
   Error as ErrorBadge,
@@ -79,7 +80,7 @@ export default class AccountEdit extends BaseCommand<typeof AccountEdit> {
   };
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfig();
+    const config = loadConfig();
     const accountId = this.argv?.[0];
     const flags = parseFlags(this.argv || []);
     const account = config.accounts[accountId as string];
@@ -95,11 +96,11 @@ export default class AccountEdit extends BaseCommand<typeof AccountEdit> {
 
     // Check if any flags were provided for non-interactive update
     const hasFlags =
-      flags.name || flags["api-key"] || flags["group-id"] || flags["base-url"];
+      flags.name || flags["api-key"] || flags.groupId || flags["base-url"];
 
     if (hasFlags) {
       // Non-interactive mode: update with provided flags
-      const updates: Partial<accountsConfig.AccountConfig> = {};
+      const updates: Partial<AccountConfig> = {};
 
       if (flags.name) {
         updates.name = flags.name;
@@ -107,14 +108,14 @@ export default class AccountEdit extends BaseCommand<typeof AccountEdit> {
       if (flags["api-key"]) {
         updates.apiKey = flags["api-key"];
       }
-      if (flags["group-id"]) {
-        updates.groupId = flags["group-id"];
+      if (flags.groupId) {
+        updates.groupId = flags.groupId;
       }
       if (flags["base-url"]) {
         updates.baseUrl = flags["base-url"];
       }
 
-      const updated = accountsConfig.updateAccount(account.id, updates);
+      const updated = updateAccount(account.id, updates);
       if (updated) {
         console.log("");
         console.log(Success({ children: "Account updated successfully!" }));
@@ -149,7 +150,7 @@ type EditStep =
   | "error";
 
 interface AccountEditUIProps {
-  account: accountsConfig.AccountConfig;
+  account: AccountConfig;
   rawModeAvailable: boolean;
 }
 
@@ -178,6 +179,9 @@ function AccountEditUI({
         break;
       case "done":
         setStep("done");
+        break;
+      default:
+        // Handle unknown values silently
         break;
     }
   };
@@ -221,8 +225,8 @@ function AccountEditUI({
     saveAndExit({ baseUrl: finalBaseUrl });
   };
 
-  const saveAndExit = (updates: Partial<accountsConfig.AccountConfig>) => {
-    const updated = accountsConfig.updateAccount(account.id, updates);
+  const saveAndExit = (updates: Partial<AccountConfig>) => {
+    const updated = updateAccount(account.id, updates);
     if (updated) {
       setAccountState(updated);
       setStep("done");

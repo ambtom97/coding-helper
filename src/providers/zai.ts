@@ -3,6 +3,7 @@ import type {
   ModelMapping,
   Provider,
   ProviderConfig,
+  UsageOptions,
   UsageStats,
 } from "./base";
 
@@ -104,16 +105,25 @@ export class ZAIProvider implements Provider {
         return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       }
 
-      // Return separate model and MCP usage for ZAI
+      // Handle TOKENS_LIMIT - it may only have percentage without usage/currentValue/remaining
+      // Fall back to using percentage to derive values when full data is missing
       const modelUsage: UsageStats = tokenLimit
-        ? {
-            used: tokenLimit.currentValue,
-            limit: tokenLimit.usage,
-            remaining: tokenLimit.remaining,
-            percentUsed: tokenLimit.percentage,
-          }
+        ? tokenLimit.currentValue !== undefined
+          ? {
+              used: tokenLimit.currentValue,
+              limit: tokenLimit.usage,
+              remaining: tokenLimit.remaining,
+              percentUsed: tokenLimit.percentage,
+            }
+          : {
+              used: 0,
+              limit: 0,
+              remaining: 0,
+              percentUsed: tokenLimit.percentage,
+            }
         : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
 
+      // Handle TIME_LIMIT - always has full fields
       const mcpUsage: UsageStats = timeLimit
         ? {
             used: timeLimit.currentValue,

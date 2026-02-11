@@ -92,11 +92,11 @@ export function table(data: Record<string, string | number>): void {
     ...Object.values(data).map((v) => String(v).length)
   );
 
-  Object.entries(data).forEach(([key, value]) => {
+  for (const [key, value] of Object.entries(data)) {
     const paddedKey = key.padEnd(maxKeyLength);
     const paddedVal = String(value).padStart(maxValLength);
     console.log(`  ${paddedKey}  →  ${paddedVal}`);
-  });
+  }
 }
 
 export function section(title: string): void {

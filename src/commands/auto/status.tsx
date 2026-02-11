@@ -1,5 +1,5 @@
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
+import { getActiveAccount, loadConfig } from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Info, Section, Table } from "../../ui/index.js";
 
@@ -8,8 +8,8 @@ export default class AutoStatus extends BaseCommand<typeof AutoStatus> {
   static examples = ["<%= config.bin %> auto status"];
 
   async run(): Promise<void> {
-    const config = accountsConfig.loadConfig();
-    const activeAccount = accountsConfig.getActiveAccount();
+    const config = loadConfig();
+    const activeAccount = getActiveAccount();
 
     await this.renderApp(
       <Section title="Auto-Rotation Status">

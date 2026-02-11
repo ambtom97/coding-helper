@@ -1,5 +1,83 @@
 # `@imbios/coding-helper`'s Claude Code Guidelines
 
+## Project Intelligence File
+
+### Project Overview
+CLI tool and Claude Code plugin for switching between Z.AI (GLM) and MiniMax API providers.
+Built with oclif framework and Ink (React for CLI UI), providing multi-account management, MCP server control, and auto-rotation capabilities.
+
+### Technology Stack
+- Runtime: Bun
+- CLI Framework: oclif with Ink (React for CLI)
+- Language: TypeScript 5.9
+- Validation: Zod 4
+- Testing: Bun, happy-dom, React Testing Library
+- SDK: @anthropic-ai/sdk, @anthropic-ai/claude-agent-sdk
+- Linting: Biome via Ultracite preset
+
+### Commands & Scripts
+- `bun run dev`: Start development server with HMR
+- `bun run build`: Bundle CLI with `bun build`
+- `bun run typecheck`: Full TypeScript validation
+- `bun test`: Run unit tests
+- `bun test:watch`: Run tests in watch mode
+- `bun run test:coverage`: Run tests with coverage report
+
+### Code Style & Standards
+- Use functional components with hooks (no class components)
+- Prefer composition over inheritance
+- Use custom hooks for shared logic
+- TypeScript strict mode enabled
+- Biome for formatting and linting (`bun x ultracite fix`)
+- Conventional commits (feat:, fix:, docs:, etc.)
+
+### Architecture Patterns
+- Feature-based folder structure under `src/commands/`
+- oclif flexible taxonomy with `.tsx` command files
+- Provider pattern for API abstraction (`src/providers/`)
+- Configuration with Zod schemas in `src/config/`
+- Ink React components for CLI UI
+- Barrel exports from `index.ts` files (disable linter for barrel files if needed)
+
+### Testing Philosophy
+- Write tests before implementing features (TDD)
+- Focus on user behavior, not implementation details
+- Mock external dependencies, test integration at boundaries
+- Use happy-dom for React component testing
+- Aim for meaningful coverage of core logic
+
+### Common Pitfalls to Avoid
+- Avoid defaultProps in TypeScript components (use default parameters)
+- Don't commit `.env` files (use `.env.example` instead)
+- Always handle loading and error states in CLI components
+- Don't use `any` or `unknown` types without good reason
+- Don't use `--no-verify` when committing (bypasses pre-commit hooks)
+
+### Performance Guidelines
+- Use `React.memo` for expensive Ink components
+- Debounce user input prompts
+- Minimize bundle size with `bun build` tree-shaking
+- Lazy load commands when possible
+
+### Debugging & Development
+- Use React DevTools for Ink components
+- Enable source maps in development
+- Use VS Code debugger with `launch.json` configuration
+- Log structured data for easier parsing
+
+### External Dependencies
+- Avoid adding new dependencies without consideration
+- Prefer built-in Bun APIs over external packages
+- Use Zod for validation instead of custom schemas
+- UI components from `@inkjs/ui` when possible
+
+### Documentation Standards
+- All public functions should have JSDoc comments
+- README files for each major feature/command
+- Keep CLAUDE.md updated with project-specific conventions
+
+---
+
 ## Bun
 
 Default to using Bun instead of Node.js.

@@ -1,7 +1,6 @@
 import { PasswordInput, Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import * as accountsConfig from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Error as ErrorBadge, Info, Section, Success } from "../../ui/index.js";
 import type { Provider } from "../providers/base.js";
@@ -91,7 +90,7 @@ function AccountAddUI(): React.ReactElement {
     const finalBaseUrl = value || PROVIDERS[provider]().getConfig().baseUrl;
     const defaultModel = PROVIDERS[provider]().getConfig().defaultModel;
 
-    const account = accountsConfig.addAccount(
+    const account = addAccount(
       name,
       provider,
       apiKey,

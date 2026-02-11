@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import { createRequire } from "node:module";
-
 var __create = Object.create;
 var __getProtoOf = Object.getPrototypeOf;
 var __defProp = Object.defineProperty;
@@ -8,43 +7,32 @@ var __getOwnPropNames = Object.getOwnPropertyNames;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __toESM = (mod, isNodeMode, target) => {
   target = mod != null ? __create(__getProtoOf(mod)) : {};
-  const to =
-    isNodeMode || !mod || !mod.__esModule
-      ? __defProp(target, "default", { value: mod, enumerable: true })
-      : target;
-  for (const key of __getOwnPropNames(mod))
+  const to = isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target;
+  for (let key of __getOwnPropNames(mod))
     if (!__hasOwnProp.call(to, key))
       __defProp(to, key, {
         get: () => mod[key],
-        enumerable: true,
+        enumerable: true
       });
   return to;
 };
-var __commonJS = (cb, mod) => () => (
-  mod || cb((mod = { exports: {} }).exports, mod), mod.exports
-);
+var __commonJS = (cb, mod) => () => (mod || cb((mod = { exports: {} }).exports, mod), mod.exports);
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, {
       get: all[name],
       enumerable: true,
       configurable: true,
-      set: (newValue) => (all[name] = () => newValue),
+      set: (newValue) => all[name] = () => newValue
     });
 };
-var __esm = (fn, res) => () => (fn && (res = fn((fn = 0))), res);
+var __esm = (fn, res) => () => (fn && (res = fn(fn = 0)), res);
 var __require = /* @__PURE__ */ createRequire(import.meta.url);
 
 // src/utils/logger.ts
 function getMinLevel() {
   const env = process.env.LOG_LEVEL?.toLowerCase();
-  if (
-    env === "trace" ||
-    env === "debug" ||
-    env === "info" ||
-    env === "warning" ||
-    env === "error"
-  ) {
+  if (env === "trace" || env === "debug" || env === "info" || env === "warning" || env === "error") {
     return env;
   }
   return "info";
@@ -78,9 +66,7 @@ function trace(message) {
 }
 function table(data) {
   const maxKeyLength = Math.max(...Object.keys(data).map((k) => k.length));
-  const maxValLength = Math.max(
-    ...Object.values(data).map((v) => String(v).length)
-  );
+  const maxValLength = Math.max(...Object.values(data).map((v) => String(v).length));
   Object.entries(data).forEach(([key, value]) => {
     const paddedKey = key.padEnd(maxKeyLength);
     const paddedVal = String(value).padStart(maxValLength);
@@ -101,7 +87,7 @@ var init_logger = __esm(() => {
     info: 2,
     success: 2,
     warning: 3,
-    error: 4,
+    error: 4
   };
   COLORS = {
     trace: "\x1B[35m",
@@ -110,7 +96,7 @@ var init_logger = __esm(() => {
     success: "\x1B[32m",
     warning: "\x1B[33m",
     error: "\x1B[31m",
-    reset: "\x1B[0m",
+    reset: "\x1B[0m"
   };
   LEVEL_PREFIXES = {
     trace: "→",
@@ -118,13 +104,12 @@ var init_logger = __esm(() => {
     info: "ℹ",
     success: "✓",
     warning: "⚠",
-    error: "✗",
+    error: "✗"
   };
 });
 
 // src/utils/anthropic-connection-test.ts
 import Anthropic from "@anthropic-ai/sdk";
-
 async function testAnthropicConnection(config, providerName) {
   if (!config.apiKey) {
     return false;
@@ -133,30 +118,23 @@ async function testAnthropicConnection(config, providerName) {
     const client = new Anthropic({
       apiKey: config.apiKey,
       baseURL: config.baseUrl,
-      timeout: 15_000,
-      maxRetries: 0,
+      timeout: 15000,
+      maxRetries: 0
     });
-    trace(
-      `${providerName}: messages.create model=${config.model} max_tokens=${TEST_MAX_TOKENS}`
-    );
+    trace(`${providerName}: messages.create model=${config.model} max_tokens=${TEST_MAX_TOKENS}`);
     const message = await client.messages.create({
       model: config.model,
       max_tokens: TEST_MAX_TOKENS,
-      messages: [{ role: "user", content: TEST_MESSAGE }],
+      messages: [{ role: "user", content: TEST_MESSAGE }]
     });
-    trace(
-      `${providerName}: response id=${message.id} stop_reason=${message.stop_reason}`
-    );
+    trace(`${providerName}: response id=${message.id} stop_reason=${message.stop_reason}`);
     return Boolean(message.id);
   } catch (e) {
-    trace(
-      `${providerName}: request failed ${e instanceof Error ? e.message : String(e)}`
-    );
+    trace(`${providerName}: request failed ${e instanceof Error ? e.message : String(e)}`);
     return false;
   }
 }
-var TEST_MESSAGE = "Hi",
-  TEST_MAX_TOKENS = 5;
+var TEST_MESSAGE = "Hi", TEST_MAX_TOKENS = 5;
 var init_anthropic_connection_test = __esm(() => {
   init_logger();
 });
@@ -165,7 +143,7 @@ var init_anthropic_connection_test = __esm(() => {
 var exports_zai = {};
 __export(exports_zai, {
   zaiProvider: () => zaiProvider,
-  ZAIProvider: () => ZAIProvider,
+  ZAIProvider: () => ZAIProvider
 });
 
 class ZAIProvider {
@@ -176,7 +154,7 @@ class ZAIProvider {
       apiKey: process.env.ZAI_API_KEY || "",
       baseUrl: process.env.ZAI_BASE_URL || "https://api.z.ai/api/anthropic",
       defaultModel: "GLM-4.7",
-      models: ["GLM-4.7", "GLM-4.5-Air"],
+      models: ["GLM-4.7", "GLM-4.5-Air"]
     };
   }
   getModels() {
@@ -190,14 +168,11 @@ class ZAIProvider {
   }
   async testConnection() {
     const config = this.getConfig();
-    return testAnthropicConnection(
-      {
-        apiKey: config.apiKey,
-        baseUrl: config.baseUrl,
-        model: config.defaultModel,
-      },
-      "ZAI"
-    );
+    return testAnthropicConnection({
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+      model: config.defaultModel
+    }, "ZAI");
   }
   async getUsage(options) {
     const config = this.getConfig();
@@ -206,53 +181,47 @@ class ZAIProvider {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
     }
     try {
-      const controller = new AbortController();
+      const controller = new AbortController;
       const timeoutId = setTimeout(() => controller.abort(), 1e4);
-      const response = await fetch(
-        "https://api.z.ai/api/monitor/usage/quota/limit",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          signal: controller.signal,
-        }
-      );
+      const response = await fetch("https://api.z.ai/api/monitor/usage/quota/limit", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        signal: controller.signal
+      });
       clearTimeout(timeoutId);
       if (!response.ok) {
         return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       }
       const data = await response.json();
-      const timeLimit = data.data?.limits?.find(
-        (limit) => limit.type === "TIME_LIMIT"
-      );
-      const tokenLimit = data.data?.limits?.find(
-        (limit) => limit.type === "TOKENS_LIMIT"
-      );
+      const timeLimit = data.data?.limits?.find((limit) => limit.type === "TIME_LIMIT");
+      const tokenLimit = data.data?.limits?.find((limit) => limit.type === "TOKENS_LIMIT");
       if (!(timeLimit || tokenLimit)) {
         return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       }
-      const modelUsage = tokenLimit
-        ? {
-            used: tokenLimit.currentValue,
-            limit: tokenLimit.usage,
-            remaining: tokenLimit.remaining,
-            percentUsed: tokenLimit.percentage,
-          }
-        : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
-      const mcpUsage = timeLimit
-        ? {
-            used: timeLimit.currentValue,
-            limit: timeLimit.usage,
-            remaining: timeLimit.remaining,
-            percentUsed: timeLimit.percentage,
-          }
-        : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+      const modelUsage = tokenLimit ? tokenLimit.currentValue !== undefined ? {
+        used: tokenLimit.currentValue,
+        limit: tokenLimit.usage,
+        remaining: tokenLimit.remaining,
+        percentUsed: tokenLimit.percentage
+      } : {
+        used: 0,
+        limit: 0,
+        remaining: 0,
+        percentUsed: tokenLimit.percentage
+      } : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
+      const mcpUsage = timeLimit ? {
+        used: timeLimit.currentValue,
+        limit: timeLimit.usage,
+        remaining: timeLimit.remaining,
+        percentUsed: timeLimit.percentage
+      } : { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
       return {
         ...modelUsage,
         modelUsage,
-        mcpUsage,
+        mcpUsage
       };
     } catch {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
@@ -265,16 +234,16 @@ var init_zai = __esm(() => {
   ZAI_MODEL_MAPPING = {
     opus: "GLM-4.7",
     sonnet: "GLM-4.7",
-    haiku: "GLM-4.5-Air",
+    haiku: "GLM-4.5-Air"
   };
-  zaiProvider = new ZAIProvider();
+  zaiProvider = new ZAIProvider;
 });
 
 // src/providers/minimax.ts
 var exports_minimax = {};
 __export(exports_minimax, {
   minimaxProvider: () => minimaxProvider,
-  MiniMaxProvider: () => MiniMaxProvider,
+  MiniMaxProvider: () => MiniMaxProvider
 });
 
 class MiniMaxProvider {
@@ -283,10 +252,9 @@ class MiniMaxProvider {
   getConfig() {
     return {
       apiKey: process.env.MINIMAX_API_KEY || "",
-      baseUrl:
-        process.env.MINIMAX_BASE_URL || "https://api.minimax.io/anthropic",
+      baseUrl: process.env.MINIMAX_BASE_URL || "https://api.minimax.io/anthropic",
       defaultModel: "MiniMax-M2.1",
-      models: ["MiniMax-M2.1"],
+      models: ["MiniMax-M2.1"]
     };
   }
   getModels() {
@@ -300,14 +268,11 @@ class MiniMaxProvider {
   }
   async testConnection() {
     const config = this.getConfig();
-    return testAnthropicConnection(
-      {
-        apiKey: config.apiKey,
-        baseUrl: config.baseUrl,
-        model: config.defaultModel,
-      },
-      "MiniMax"
-    );
+    return testAnthropicConnection({
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+      model: config.defaultModel
+    }, "MiniMax");
   }
   async getUsage(options) {
     const config = this.getConfig();
@@ -317,18 +282,16 @@ class MiniMaxProvider {
     }
     const groupId = options?.groupId || process.env.MINIMAX_GROUP_ID || "";
     try {
-      const controller = new AbortController();
+      const controller = new AbortController;
       const timeoutId = setTimeout(() => controller.abort(), 1e4);
-      const url = groupId
-        ? `https://platform.minimax.io/v1/api/openplatform/coding_plan/remains?GroupId=${groupId}`
-        : "https://platform.minimax.io/v1/api/openplatform/coding_plan/remains";
+      const url = groupId ? `https://platform.minimax.io/v1/api/openplatform/coding_plan/remains?GroupId=${groupId}` : "https://platform.minimax.io/v1/api/openplatform/coding_plan/remains";
       const response = await fetch(url, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        signal: controller.signal,
+        signal: controller.signal
       });
       clearTimeout(timeoutId);
       if (!response.ok) {
@@ -342,14 +305,14 @@ class MiniMaxProvider {
       const limit = modelRemains.current_interval_total_count;
       const remaining = modelRemains.current_interval_usage_count;
       const used = Math.max(0, limit - remaining);
-      const percentUsed = limit > 0 ? (used / limit) * 100 : 0;
-      const percentRemaining = limit > 0 ? (remaining / limit) * 100 : 0;
+      const percentUsed = limit > 0 ? used / limit * 100 : 0;
+      const percentRemaining = limit > 0 ? remaining / limit * 100 : 0;
       return {
         used,
         limit,
         remaining,
         percentUsed,
-        percentRemaining,
+        percentRemaining
       };
     } catch {
       return { used: 0, limit: 0, remaining: 0, percentUsed: 0 };
@@ -362,9 +325,9 @@ var init_minimax = __esm(() => {
   MINIMAX_MODEL_MAPPING = {
     opus: "MiniMax-M2.1",
     sonnet: "MiniMax-M2.1",
-    haiku: "MiniMax-M2.1",
+    haiku: "MiniMax-M2.1"
   };
-  minimaxProvider = new MiniMaxProvider();
+  minimaxProvider = new MiniMaxProvider;
 });
 
 // src/config/accounts-config.ts
@@ -410,7 +373,7 @@ function addAccount(name, provider, apiKey, baseUrl, defaultModel, groupId) {
     priority: 0,
     isActive: true,
     createdAt: now,
-    ...(groupId && { groupId }),
+    ...groupId && { groupId }
   };
   const config = loadConfig();
   config.accounts[id] = account;
@@ -429,7 +392,7 @@ function updateAccount(id, updates) {
   config.accounts[id] = {
     ...account,
     ...updates,
-    lastUsed: new Date().toISOString(),
+    lastUsed: new Date().toISOString()
   };
   saveConfig(config);
   return config.accounts[id];
@@ -472,20 +435,16 @@ function switchAccount(id) {
 }
 function rotateApiKey(provider) {
   const config = loadConfig();
-  const providerAccounts = Object.values(config.accounts)
-    .filter((a) => a.provider === provider && a.isActive)
-    .sort((a, b) => {
-      if (config.rotation.strategy === "least-used") {
-        return (a.usage?.used || 0) - (b.usage?.used || 0);
-      }
-      return a.priority - b.priority;
-    });
+  const providerAccounts = Object.values(config.accounts).filter((a) => a.provider === provider && a.isActive).sort((a, b) => {
+    if (config.rotation.strategy === "least-used") {
+      return (a.usage?.used || 0) - (b.usage?.used || 0);
+    }
+    return a.priority - b.priority;
+  });
   if (providerAccounts.length === 0) {
     return null;
   }
-  const currentIndex = providerAccounts.findIndex(
-    (a) => a.id === config.activeAccountId
-  );
+  const currentIndex = providerAccounts.findIndex((a) => a.id === config.activeAccountId);
   const nextIndex = (currentIndex + 1) % providerAccounts.length;
   const nextAccount = providerAccounts[nextIndex];
   config.activeAccountId = nextAccount.id;
@@ -496,7 +455,7 @@ function rotateApiKey(provider) {
 function checkAlerts(usage) {
   const config = loadConfig();
   const triggered = [];
-  const percentUsed = usage.limit > 0 ? (usage.used / usage.limit) * 100 : 0;
+  const percentUsed = usage.limit > 0 ? usage.used / usage.limit * 100 : 0;
   for (const alert of config.alerts) {
     if (!alert.enabled) {
       continue;
@@ -547,25 +506,20 @@ function configureRotation(enabled, strategy, crossProvider) {
 }
 async function fetchAndUpdateUsage(account) {
   try {
-    const { zaiProvider: zaiProvider2 } = await Promise.resolve().then(
-      () => (init_zai(), exports_zai)
-    );
-    const { minimaxProvider: minimaxProvider2 } = await Promise.resolve().then(
-      () => (init_minimax(), exports_minimax)
-    );
-    const provider =
-      account.provider === "zai" ? zaiProvider2 : minimaxProvider2;
+    const { zaiProvider: zaiProvider2 } = await Promise.resolve().then(() => (init_zai(), exports_zai));
+    const { minimaxProvider: minimaxProvider2 } = await Promise.resolve().then(() => (init_minimax(), exports_minimax));
+    const provider = account.provider === "zai" ? zaiProvider2 : minimaxProvider2;
     const usage = await provider.getUsage({
       apiKey: account.apiKey,
-      groupId: account.groupId,
+      groupId: account.groupId
     });
     if (usage.limit > 0) {
       updateAccount(account.id, {
         usage: {
           used: usage.used,
           limit: usage.limit,
-          lastUpdated: new Date().toISOString(),
-        },
+          lastUpdated: new Date().toISOString()
+        }
       });
       if (account.provider === "zai" && usage.mcpUsage) {
         return usage.mcpUsage.percentUsed;
@@ -574,7 +528,7 @@ async function fetchAndUpdateUsage(account) {
     }
   } catch {}
   if (account.usage && account.usage.limit > 0) {
-    return (account.usage.used / account.usage.limit) * 100;
+    return account.usage.used / account.usage.limit * 100;
   }
   return 0;
 }
@@ -592,8 +546,7 @@ async function rotateAcrossProviders() {
       if (otherAccounts.length === 0) {
         nextAccount = allAccounts[0];
       } else {
-        nextAccount =
-          otherAccounts[Math.floor(Math.random() * otherAccounts.length)];
+        nextAccount = otherAccounts[Math.floor(Math.random() * otherAccounts.length)];
       }
       break;
     }
@@ -605,12 +558,10 @@ async function rotateAcrossProviders() {
       break;
     }
     case "least-used": {
-      const accountsWithUsage = await Promise.all(
-        allAccounts.map(async (acc) => ({
-          account: acc,
-          usage: await fetchAndUpdateUsage(acc),
-        }))
-      );
+      const accountsWithUsage = await Promise.all(allAccounts.map(async (acc) => ({
+        account: acc,
+        usage: await fetchAndUpdateUsage(acc)
+      })));
       accountsWithUsage.sort((a, b) => a.usage - b.usage);
       nextAccount = accountsWithUsage[0].account;
       break;
@@ -642,29 +593,28 @@ var init_accounts_config = __esm(() => {
     alerts: [
       { id: "usage-80", type: "usage", threshold: 80, enabled: true },
       { id: "usage-90", type: "usage", threshold: 90, enabled: true },
-      { id: "quota-low", type: "quota", threshold: 10, enabled: true },
+      { id: "quota-low", type: "quota", threshold: 10, enabled: true }
     ],
     notifications: {
       method: "console",
-      enabled: true,
+      enabled: true
     },
     dashboard: {
       port: 3456,
       host: "localhost",
-      enabled: false,
+      enabled: false
     },
     rotation: {
       enabled: true,
       strategy: "least-used",
-      crossProvider: true,
-    },
+      crossProvider: true
+    }
   };
 });
 
 // src/config/mcp.ts
 import * as fs from "node:fs";
 import * as path from "node:path";
-
 function getMcpPath() {
   return `${process.env.HOME || process.env.USERPROFILE}/.claude/cohe-mcp.json`;
 }
@@ -695,7 +645,7 @@ function addMcpServer(name, command, args, options) {
     enabled: true,
     description: options?.description || "",
     provider: options?.provider || "all",
-    env: options?.env,
+    env: options?.env
   };
   config.servers[name] = server;
   saveMcpConfig(config);
@@ -739,7 +689,7 @@ function getMcpEnvForServer(name) {
   }
   return {
     ...config.globalEnv,
-    ...server.env,
+    ...server.env
   };
 }
 function generateMcpEnvExport() {
@@ -788,16 +738,12 @@ function generateClaudeDesktopConfig() {
     mcpServers[server.name] = {
       command: server.command,
       args: server.args,
-      env: server.env,
+      env: server.env
     };
   }
-  return JSON.stringify(
-    {
-      mcpServers,
-    },
-    null,
-    2
-  );
+  return JSON.stringify({
+    mcpServers
+  }, null, 2);
 }
 function addPredefinedServers(provider) {
   const servers = provider === "zai" ? ZAI_MCP_SERVERS : MINIMAX_MCP_SERVERS;
@@ -806,7 +752,7 @@ function addPredefinedServers(provider) {
     if (!config.servers[server.name]) {
       config.servers[server.name] = {
         ...server,
-        enabled: false,
+        enabled: false
       };
     }
   }
@@ -817,7 +763,7 @@ var init_mcp = __esm(() => {
   DEFAULT_CONFIG2 = {
     version: "2.0.0",
     servers: {},
-    globalEnv: {},
+    globalEnv: {}
   };
   ZAI_MCP_SERVERS = {
     "zai-vision": {
@@ -825,46 +771,44 @@ var init_mcp = __esm(() => {
       command: "npx",
       args: ["-y", "@z-ai/mcp-server-vision"],
       description: "Vision/image analysis for Z.AI",
-      provider: "zai",
+      provider: "zai"
     },
     "zai-search": {
       name: "zai-search",
       command: "npx",
       args: ["-y", "@z-ai/mcp-server-search"],
       description: "Web search for Z.AI",
-      provider: "zai",
+      provider: "zai"
     },
     "zai-reader": {
       name: "zai-reader",
       command: "npx",
       args: ["-y", "@z-ai/mcp-server-reader"],
       description: "Content reading for Z.AI",
-      provider: "zai",
+      provider: "zai"
     },
     "zai-zread": {
       name: "zai-zread",
       command: "npx",
       args: ["-y", "@z-ai/mcp-server-zread"],
       description: "Advanced reading for Z.AI",
-      provider: "zai",
-    },
+      provider: "zai"
+    }
   };
   MINIMAX_MCP_SERVERS = {
     "minimax-coding": {
       name: "minimax-coding",
       command: "npx",
       args: ["-y", "minimax-coding-plan-mcp"],
-      description:
-        "MiniMax coding plan MCP - web_search and understand_image tools",
-      provider: "minimax",
-    },
+      description: "MiniMax coding plan MCP - web_search and understand_image tools",
+      provider: "minimax"
+    }
   };
 });
 
 // src/config/profiles.ts
 import * as fs2 from "node:fs";
 import * as path2 from "node:path";
-
 function getProfilesPath() {
   return `${process.env.HOME || process.env.USERPROFILE}/.claude/imbios-profiles.json`;
 }
@@ -895,7 +839,7 @@ function createProfile(name, provider, apiKey, baseUrl, defaultModel) {
     baseUrl,
     defaultModel,
     createdAt: now,
-    updatedAt: now,
+    updatedAt: now
   };
   const config = loadProfiles();
   config.profiles[name] = profile;
@@ -956,8 +900,8 @@ var init_profiles = __esm(() => {
     settings: {
       defaultProvider: "zai",
       autoSwitch: false,
-      logLevel: "info",
-    },
+      logLevel: "info"
+    }
   };
 });
 
@@ -965,7 +909,6 @@ var init_profiles = __esm(() => {
 import * as fs3 from "node:fs";
 import * as os from "node:os";
 import * as path3 from "node:path";
-
 function getConfigDir() {
   return path3.join(os.homedir(), ".claude");
 }
@@ -997,8 +940,7 @@ function getProviderConfig(provider) {
   return {
     apiKey: "apiKey" in providerConfig ? providerConfig.apiKey : "",
     baseUrl: "baseUrl" in providerConfig ? providerConfig.baseUrl : "",
-    defaultModel:
-      "defaultModel" in providerConfig ? providerConfig.defaultModel : "",
+    defaultModel: "defaultModel" in providerConfig ? providerConfig.defaultModel : ""
   };
 }
 function setProviderConfig(provider, apiKey, baseUrl, defaultModel) {
@@ -1028,9 +970,7 @@ var init_settings = __esm(() => {
 function getShellCompletion(shell) {
   const shellConfig = SHELLS.find((s) => s.name === shell);
   if (!shellConfig) {
-    throw new Error(
-      `Unsupported shell: ${shell}. Supported shells: bash, zsh, fish`
-    );
+    throw new Error(`Unsupported shell: ${shell}. Supported shells: bash, zsh, fish`);
   }
   return shellConfig.completions;
 }
@@ -1046,13 +986,12 @@ var bashCompletions = `_cohe_completions() {
       ;;
   esac
 }
-complete -F _cohe_completions cohe`,
-  SHELLS;
+complete -F _cohe_completions cohe`, SHELLS;
 var init_completion = __esm(() => {
   SHELLS = [
     {
       name: "bash",
-      completions: bashCompletions,
+      completions: bashCompletions
     },
     {
       name: "zsh",
@@ -1079,7 +1018,7 @@ _cohe() {
   _describe -t commands 'cohe command' commands
 }
 
-_cohe`,
+_cohe`
     },
     {
       name: "fish",
@@ -1096,22 +1035,21 @@ complete -c cohe -a 'doctor' -d 'Diagnose issues'
 complete -c cohe -a 'env' -d 'Export environment'
 complete -c cohe -a 'models' -d 'List models'
 complete -c cohe -a 'help' -d 'Show help'
-complete -c cohe -a 'version' -d 'Show version'`,
-    },
+complete -c cohe -a 'version' -d 'Show version'`
+    }
   ];
 });
 
 // src/utils/prompts.ts
 import inquirer from "inquirer";
-
 async function confirm(message, defaultValue = true) {
   const { result } = await inquirer.prompt([
     {
       type: "confirm",
       name: "result",
       message,
-      default: defaultValue,
-    },
+      default: defaultValue
+    }
   ]);
   return result;
 }
@@ -1121,8 +1059,8 @@ async function input(message, defaultValue = "") {
       type: "input",
       name: "result",
       message,
-      default: defaultValue,
-    },
+      default: defaultValue
+    }
   ]);
   return result;
 }
@@ -1131,8 +1069,8 @@ async function password(message) {
     {
       type: "password",
       name: "result",
-      message,
-    },
+      message
+    }
   ]);
   return result;
 }
@@ -1143,8 +1081,8 @@ async function select(message, choices, defaultIndex = 0) {
       name: "result",
       message,
       choices: choices.map((c) => ({ name: c, value: c })),
-      default: choices[defaultIndex],
-    },
+      default: choices[defaultIndex]
+    }
   ]);
   return result;
 }
@@ -1154,8 +1092,8 @@ async function checkbox(message, choices) {
       type: "checkbox",
       name: "result",
       message,
-      choices: choices.map((c) => ({ name: c, value: c })),
-    },
+      choices: choices.map((c) => ({ name: c, value: c }))
+    }
   ]);
   return result;
 }
@@ -1171,11 +1109,9 @@ var init_prompts = () => {};
 var exports_dashboard = {};
 __export(exports_dashboard, {
   stopDashboard: () => stopDashboard,
-  startDashboard: () => startDashboard,
+  startDashboard: () => startDashboard
 });
-
 import * as http from "node:http";
-
 function startDashboard() {
   const config = loadConfig();
   if (!config.dashboard.enabled) {
@@ -1194,18 +1130,16 @@ function startDashboard() {
       res.writeHead(200, { "Content-Type": "application/json" });
       const usage = { used: 0, limit: 1000, remaining: 1000 };
       if (activeAccount) {
-        res.end(
-          JSON.stringify({
-            activeAccount: activeAccount.id,
-            usage,
-            accounts: accounts.map((a) => ({
-              id: a.id,
-              name: a.name,
-              provider: a.provider,
-            })),
-            alerts: [],
-          })
-        );
+        res.end(JSON.stringify({
+          activeAccount: activeAccount.id,
+          usage,
+          accounts: accounts.map((a) => ({
+            id: a.id,
+            name: a.name,
+            provider: a.provider
+          })),
+          alerts: []
+        }));
         return;
       }
       res.end(JSON.stringify({ error: "No active account" }));
@@ -1373,13 +1307,11 @@ var exports_hooks_handler = {};
 __export(exports_hooks_handler, {
   handleHooksUninstall: () => handleHooksUninstall,
   handleHooksStatus: () => handleHooksStatus,
-  handleHooksSetup: () => handleHooksSetup,
+  handleHooksSetup: () => handleHooksSetup
 });
-
 import * as fs4 from "node:fs";
 import * as os2 from "node:os";
 import * as path4 from "node:path";
-
 async function handleHooksSetup() {
   const claudeSettingsPath = path4.join(os2.homedir(), ".claude");
   const settingsFilePath = path4.join(claudeSettingsPath, "settings.json");
@@ -1404,14 +1336,7 @@ async function handleHooksSetup() {
     if (!settings.hooks.SessionStart) {
       settings.hooks.SessionStart = [];
     }
-    const sessionStartExists = settings.hooks.SessionStart.some(
-      (hookConfig) =>
-        hookConfig.type === "command" &&
-        hookConfig.command &&
-        (hookConfig.command === sessionStartCommand ||
-          hookConfig.command.includes("auto hook") ||
-          hookConfig.command.includes("auto-rotate.sh"))
-    );
+    const sessionStartExists = settings.hooks.SessionStart.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && (hookConfig.command === sessionStartCommand || hookConfig.command.includes("auto hook") || hookConfig.command.includes("auto-rotate.sh")));
     if (sessionStartExists) {
       hooksSkipped++;
     } else {
@@ -1420,21 +1345,16 @@ async function handleHooksSetup() {
         hooks: [
           {
             type: "command",
-            command: sessionStartCommand,
-          },
-        ],
+            command: sessionStartCommand
+          }
+        ]
       });
       hooksInstalled++;
     }
     if (!settings.hooks.PostToolUse) {
       settings.hooks.PostToolUse = [];
     }
-    const postToolExists = settings.hooks.PostToolUse.some(
-      (hookConfig) =>
-        hookConfig.type === "command" &&
-        hookConfig.command &&
-        hookConfig.command.includes("hooks post-tool")
-    );
+    const postToolExists = settings.hooks.PostToolUse.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && hookConfig.command.includes("hooks post-tool"));
     if (postToolExists) {
       hooksSkipped++;
     } else {
@@ -1443,21 +1363,16 @@ async function handleHooksSetup() {
         hooks: [
           {
             type: "command",
-            command: postToolCommand,
-          },
-        ],
+            command: postToolCommand
+          }
+        ]
       });
       hooksInstalled++;
     }
     if (!settings.hooks.Stop) {
       settings.hooks.Stop = [];
     }
-    const stopExists = settings.hooks.Stop.some(
-      (hookConfig) =>
-        hookConfig.type === "command" &&
-        hookConfig.command &&
-        hookConfig.command.includes("hooks stop")
-    );
+    const stopExists = settings.hooks.Stop.some((hookConfig) => hookConfig.type === "command" && hookConfig.command && hookConfig.command.includes("hooks stop"));
     if (stopExists) {
       hooksSkipped++;
     } else {
@@ -1465,17 +1380,15 @@ async function handleHooksSetup() {
         hooks: [
           {
             type: "command",
-            command: stopCommand,
-          },
-        ],
+            command: stopCommand
+          }
+        ]
       });
       hooksInstalled++;
     }
     fs4.writeFileSync(settingsFilePath, JSON.stringify(settings, null, 2));
     section("Hooks Setup");
-    success(
-      `Installed ${hooksInstalled} hook(s), ${hooksSkipped} already present.`
-    );
+    success(`Installed ${hooksInstalled} hook(s), ${hooksSkipped} already present.`);
     info(`Settings location: ${settingsFilePath}`);
     info("");
     info("Installed hooks:");
@@ -1483,9 +1396,7 @@ async function handleHooksSetup() {
     info("  • PostToolUse: Format files after Write|Edit");
     info("  • Stop: Notifications + commit prompt on session end");
     info("");
-    info(
-      "Uses the cohe CLI directly, so all hooks auto-update with the package."
-    );
+    info("Uses the cohe CLI directly, so all hooks auto-update with the package.");
   } catch (err) {
     section("Hooks Setup");
     error("Failed to install hooks");
@@ -1493,11 +1404,7 @@ async function handleHooksSetup() {
   }
 }
 async function handleHooksUninstall() {
-  const settingsFilePath = path4.join(
-    os2.homedir(),
-    ".claude",
-    "settings.json"
-  );
+  const settingsFilePath = path4.join(os2.homedir(), ".claude", "settings.json");
   const hooksDir = path4.join(os2.homedir(), ".claude", "hooks");
   const hookScriptPath = path4.join(hooksDir, "auto-rotate.sh");
   try {
@@ -1520,28 +1427,19 @@ async function handleHooksUninstall() {
       for (const hookType of hookTypes) {
         if (settings.hooks?.[hookType]) {
           const originalLength = settings.hooks[hookType].length;
-          settings.hooks[hookType] = settings.hooks[hookType].filter(
-            (hookGroup) => {
-              if (!(hookGroup.hooks && Array.isArray(hookGroup.hooks))) {
-                return true;
-              }
-              const hasOurHook = hookGroup.hooks.some((hookConfig) => {
-                if (hookConfig.type !== "command" || !hookConfig.command) {
-                  return false;
-                }
-                const cmd = hookConfig.command;
-                return (
-                  cmd === hookScriptPath ||
-                  cmd.includes("auto-rotate.sh") ||
-                  cmd.includes("auto hook") ||
-                  cmd === "cohe auto hook --silent" ||
-                  cmd.includes("hooks post-tool") ||
-                  cmd.includes("hooks stop")
-                );
-              });
-              return !hasOurHook;
+          settings.hooks[hookType] = settings.hooks[hookType].filter((hookGroup) => {
+            if (!(hookGroup.hooks && Array.isArray(hookGroup.hooks))) {
+              return true;
             }
-          );
+            const hasOurHook = hookGroup.hooks.some((hookConfig) => {
+              if (hookConfig.type !== "command" || !hookConfig.command) {
+                return false;
+              }
+              const cmd = hookConfig.command;
+              return cmd === hookScriptPath || cmd.includes("auto-rotate.sh") || cmd.includes("auto hook") || cmd === "cohe auto hook --silent" || cmd.includes("hooks post-tool") || cmd.includes("hooks stop");
+            });
+            return !hasOurHook;
+          });
           if (settings.hooks[hookType].length !== originalLength) {
             hooksRemoved += originalLength - settings.hooks[hookType].length;
             settingsModified = true;
@@ -1572,9 +1470,7 @@ async function handleHooksUninstall() {
       info(`Updated Claude settings: ${settingsFilePath}`);
     }
     info("");
-    info(
-      "Auto-rotation, formatting, and notifications are no longer automatic."
-    );
+    info("Auto-rotation, formatting, and notifications are no longer automatic.");
     info("To re-enable hooks, run 'cohe hooks setup'.");
   } catch (err) {
     section("Hooks Uninstall");
@@ -1583,35 +1479,30 @@ async function handleHooksUninstall() {
   }
 }
 async function handleHooksStatus() {
-  const settingsFilePath = path4.join(
-    os2.homedir(),
-    ".claude",
-    "settings.json"
-  );
+  const settingsFilePath = path4.join(os2.homedir(), ".claude", "settings.json");
   const hooksDir = path4.join(os2.homedir(), ".claude", "hooks");
   const hookScriptPath = path4.join(hooksDir, "auto-rotate.sh");
   const scriptExists = fs4.existsSync(hookScriptPath);
-  const scriptExecutable =
-    scriptExists && (fs4.statSync(hookScriptPath).mode & 493) !== 0;
+  const scriptExecutable = scriptExists && (fs4.statSync(hookScriptPath).mode & 493) !== 0;
   const hooks = [
     {
       name: "SessionStart",
       command: "cohe auto hook --silent",
       registered: false,
-      hookType: "auto-rotate",
+      hookType: "auto-rotate"
     },
     {
       name: "PostToolUse",
       command: "cohe hooks post-tool --silent",
       registered: false,
-      hookType: "format",
+      hookType: "format"
     },
     {
       name: "Stop",
       command: "cohe hooks stop --silent",
       registered: false,
-      hookType: "notify",
-    },
+      hookType: "notify"
+    }
   ];
   let settingsFound = false;
   let rotationEnabled = false;
@@ -1626,12 +1517,7 @@ async function handleHooksStatus() {
           settings.hooks[hook.name].forEach((hookGroup) => {
             if (hookGroup.hooks && Array.isArray(hookGroup.hooks)) {
               hookGroup.hooks.forEach((hookConfig) => {
-                if (
-                  hookConfig.type === "command" &&
-                  hookConfig.command &&
-                  (hookConfig.command.includes(hook.command.split(" ")[1]) ||
-                    hookConfig.command.includes(hook.hookType))
-                ) {
+                if (hookConfig.type === "command" && hookConfig.command && (hookConfig.command.includes(hook.command.split(" ")[1]) || hookConfig.command.includes(hook.hookType))) {
                   hook.registered = true;
                 }
               });
@@ -1653,9 +1539,7 @@ async function handleHooksStatus() {
   const allHooksInstalled = hooks.every((h) => h.registered);
   const someHooksInstalled = hooks.some((h) => h.registered);
   section("Hooks Status");
-  console.log(
-    `Overall Status: ${allHooksInstalled ? "✓ All Installed" : someHooksInstalled ? "⚠ Partial" : "✗ Not Installed"}`
-  );
+  console.log(`Overall Status: ${allHooksInstalled ? "✓ All Installed" : someHooksInstalled ? "⚠ Partial" : "✗ Not Installed"}`);
   console.log("");
   console.log("Installed Hooks:");
   for (const hook of hooks) {
@@ -1663,7 +1547,7 @@ async function handleHooksStatus() {
     const typeLabel = {
       "auto-rotate": "Auto-rotate",
       format: "Format files",
-      notify: "Notifications",
+      notify: "Notifications"
     }[hook.hookType];
     console.log(`  ${status} ${hook.name}: ${typeLabel}`);
     if (hook.registered) {
@@ -1671,9 +1555,7 @@ async function handleHooksStatus() {
     }
   }
   console.log("");
-  console.log(
-    `Legacy Hook Script: ${scriptExists ? (scriptExecutable ? "✓ Found" : "⚠ Not Executable") : "○ Not Found"}`
-  );
+  console.log(`Legacy Hook Script: ${scriptExists ? scriptExecutable ? "✓ Found" : "⚠ Not Executable" : "○ Not Found"}`);
   if (scriptExists) {
     console.log(`  ${hookScriptPath}`);
   }
@@ -1691,9 +1573,7 @@ async function handleHooksStatus() {
   } else if (rotationEnabled) {
     success("All hooks are installed and rotation is enabled!");
   } else {
-    warning(
-      "Hooks installed but rotation is disabled. Run 'cohe auto enable'."
-    );
+    warning("Hooks installed but rotation is disabled. Run 'cohe auto enable'.");
   }
 }
 var init_hooks_handler = __esm(() => {
@@ -1703,20 +1583,15 @@ var init_hooks_handler = __esm(() => {
 // src/oclif/base.tsx
 import { Command } from "@oclif/core";
 import { render } from "ink";
-
 function checkMiniMaxGroupId() {
   try {
     const config = loadConfig();
-    const minimaxAccounts = Object.values(config.accounts).filter(
-      (a) => a.provider === "minimax" && a.isActive && !a.groupId
-    );
+    const minimaxAccounts = Object.values(config.accounts).filter((a) => a.provider === "minimax" && a.isActive && !a.groupId);
     if (minimaxAccounts.length > 0) {
       console.warn(`
 ⚠️  Warning:`);
       for (const account of minimaxAccounts) {
-        console.warn(
-          `  MiniMax account "${account.name}" is missing groupId. Run \`cohe account edit ${account.id}\` to set it.`
-        );
+        console.warn(`  MiniMax account "${account.name}" is missing groupId. Run \`cohe account edit ${account.id}\` to set it.`);
         console.warn("  Usage data may be incomplete.");
       }
       console.warn("");
@@ -1739,15 +1614,14 @@ var init_base = __esm(() => {
           baseFlags: super.ctor.baseFlags,
           enableJsonFlag: this.ctor.enableJsonFlag,
           args: this.ctor.args,
-          strict: this.ctor.strict,
+          strict: this.ctor.strict
         });
         this.flags = flags;
         this.args = args;
       } catch (error2) {
         this.flags = {};
         this.args = {};
-        if (this.ctor.strict === false) {
-        } else {
+        if (this.ctor.strict === false) {} else {
           throw error2;
         }
       }
@@ -1788,130 +1662,85 @@ var init_base = __esm(() => {
   };
 });
 
+// src/ui/components/divider.tsx
+import { Box, Text } from "ink";
+import { jsxDEV } from "react/jsx-dev-runtime";
 var init_divider = () => {};
 
 // src/ui/components/section.tsx
 import { Box as Box2, Text as Text2 } from "ink";
 import { jsxDEV as jsxDEV2 } from "react/jsx-dev-runtime";
-
 function Section({ title, children }) {
-  return /* @__PURE__ */ jsxDEV2(
-    Box2,
-    {
-      flexDirection: "column",
-      marginY: 1,
-      children: [
-        /* @__PURE__ */ jsxDEV2(
-          Text2,
-          {
-            children: "─".repeat(50),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV2(
-          Text2,
-          {
-            bold: true,
-            children: [" ", title],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV2(
-          Text2,
-          {
-            children: "─".repeat(50),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        children &&
-          /* @__PURE__ */ jsxDEV2(
-            Box2,
-            {
-              marginTop: 1,
-              children,
-            },
-            undefined,
-            false,
-            undefined,
-            this
-          ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+  return /* @__PURE__ */ jsxDEV2(Box2, {
+    flexDirection: "column",
+    marginY: 1,
+    children: [
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        children: "─".repeat(50)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        bold: true,
+        children: [
+          " ",
+          title
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV2(Text2, {
+        children: "─".repeat(50)
+      }, undefined, false, undefined, this),
+      children && /* @__PURE__ */ jsxDEV2(Box2, {
+        marginTop: 1,
+        children
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
 var init_section = () => {};
 
 // src/ui/components/status-badge.tsx
 import { Text as Text3 } from "ink";
 import { jsxDEV as jsxDEV3 } from "react/jsx-dev-runtime";
-
-function StatusBadge({ level, children, showTimestamp = false }) {
+function StatusBadge({
+  level,
+  children,
+  showTimestamp = false
+}) {
   const color = LEVEL_COLORS[level];
   const prefix = LEVEL_PREFIXES2[level];
   const timestamp = new Date().toISOString().split("T")[1].split(".")[0];
-  return /* @__PURE__ */ jsxDEV3(
-    Text3,
-    {
-      color,
-      children: [showTimestamp && `[${timestamp}] `, prefix, " ", children],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+  return /* @__PURE__ */ jsxDEV3(Text3, {
+    color,
+    children: [
+      showTimestamp && `[${timestamp}] `,
+      prefix,
+      " ",
+      children
+    ]
+  }, undefined, true, undefined, this);
 }
-function Success({ children }) {
-  return /* @__PURE__ */ jsxDEV3(
-    StatusBadge,
-    {
-      level: "success",
-      children,
-    },
-    undefined,
-    false,
-    undefined,
-    this
-  );
+function Success({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "success",
+    children
+  }, undefined, false, undefined, this);
 }
-function Info({ children }) {
-  return /* @__PURE__ */ jsxDEV3(
-    StatusBadge,
-    {
-      level: "info",
-      children,
-    },
-    undefined,
-    false,
-    undefined,
-    this
-  );
+function Info({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "info",
+    children
+  }, undefined, false, undefined, this);
 }
-function Warning({ children }) {
-  return /* @__PURE__ */ jsxDEV3(
-    StatusBadge,
-    {
-      level: "warning",
-      children,
-    },
-    undefined,
-    false,
-    undefined,
-    this
-  );
+function Warning({
+  children
+}) {
+  return /* @__PURE__ */ jsxDEV3(StatusBadge, {
+    level: "warning",
+    children
+  }, undefined, false, undefined, this);
 }
 var LEVEL_COLORS, LEVEL_PREFIXES2;
 var init_status_badge = __esm(() => {
@@ -1921,7 +1750,7 @@ var init_status_badge = __esm(() => {
     info: "cyan",
     success: "green",
     warning: "yellow",
-    error: "red",
+    error: "red"
   };
   LEVEL_PREFIXES2 = {
     trace: "→",
@@ -1929,10 +1758,13 @@ var init_status_badge = __esm(() => {
     info: "ℹ",
     success: "✓",
     warning: "⚠",
-    error: "✗",
+    error: "✗"
   };
 });
 
+// src/ui/components/Table.tsx
+import { Box as Box3, Text as Text4 } from "ink";
+import { jsxDEV as jsxDEV4 } from "react/jsx-dev-runtime";
 var init_Table = () => {};
 
 // src/ui/components/index.ts
@@ -1943,14 +1775,39 @@ var init_components = __esm(() => {
   init_Table();
 });
 
+// src/ui/prompts/confirm.tsx
+import { ConfirmInput } from "@inkjs/ui";
+import { Box as Box4, render as render2, Text as Text5, useApp } from "ink";
+import { useState } from "react";
+import { jsxDEV as jsxDEV5 } from "react/jsx-dev-runtime";
 var init_confirm = () => {};
 
+// src/ui/prompts/multi-select.tsx
+import { MultiSelect as InkMultiSelect } from "@inkjs/ui";
+import { Box as Box5, render as render3, Text as Text6, useApp as useApp2 } from "ink";
+import { useState as useState2 } from "react";
+import { jsxDEV as jsxDEV6 } from "react/jsx-dev-runtime";
 var init_multi_select = () => {};
 
+// src/ui/prompts/password-input.tsx
+import { PasswordInput as InkPasswordInput } from "@inkjs/ui";
+import { Box as Box6, render as render4, Text as Text7, useApp as useApp3 } from "ink";
+import { useState as useState3 } from "react";
+import { jsxDEV as jsxDEV7 } from "react/jsx-dev-runtime";
 var init_password_input = () => {};
 
+// src/ui/prompts/select.tsx
+import { Select as InkSelect } from "@inkjs/ui";
+import { Box as Box7, render as render5, Text as Text8, useApp as useApp4 } from "ink";
+import { useState as useState4 } from "react";
+import { jsxDEV as jsxDEV8 } from "react/jsx-dev-runtime";
 var init_select = () => {};
 
+// src/ui/prompts/text-input.tsx
+import { TextInput as InkTextInput } from "@inkjs/ui";
+import { Box as Box8, render as render6, Text as Text9, useApp as useApp5 } from "ink";
+import { useState as useState5 } from "react";
+import { jsxDEV as jsxDEV9 } from "react/jsx-dev-runtime";
 var init_text_input = () => {};
 
 // src/ui/prompts/index.ts
@@ -1971,20 +1828,18 @@ var init_ui = __esm(() => {
 // src/commands/hooks/post-tool.tsx
 var exports_post_tool = {};
 __export(exports_post_tool, {
-  default: () => PostTool,
+  default: () => PostTool
 });
-
 import { spawn } from "node:child_process";
 import * as fs5 from "node:fs";
 import { existsSync as existsSync5 } from "node:fs";
 import * as path5 from "node:path";
 import { Box as Box9, Text as Text10 } from "ink";
 import { jsxDEV as jsxDEV10 } from "react/jsx-dev-runtime";
-
 function hasCommand(cmd) {
   try {
     const which = spawn("which", [cmd], {
-      stdio: ["ignore", "pipe", "ignore"],
+      stdio: ["ignore", "pipe", "ignore"]
     });
     return new Promise((resolve) => {
       which.on("close", (code) => resolve(code === 0));
@@ -1999,8 +1854,8 @@ async function runCommand(cmd, args) {
     const proc = spawn(cmd, args, { stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
-    proc.stdout.on("data", (data) => (stdout += data.toString()));
-    proc.stderr.on("data", (data) => (stderr += data.toString()));
+    proc.stdout.on("data", (data) => stdout += data.toString());
+    proc.stderr.on("data", (data) => stderr += data.toString());
     proc.on("close", (code) => {
       resolve({ success: code === 0, stdout, stderr });
     });
@@ -2010,12 +1865,14 @@ async function runCommand(cmd, args) {
   });
 }
 async function formatBiome(file) {
-  if (!(await hasCommand("biome"))) return false;
+  if (!await hasCommand("biome"))
+    return false;
   const result = await runCommand("biome", ["format", "--write", file]);
   return result.success;
 }
 async function formatJson(file) {
-  if (!(await hasCommand("jq"))) return false;
+  if (!await hasCommand("jq"))
+    return false;
   const tmpFile = `${file}.tmp_${Date.now()}`;
   try {
     fs5.writeFileSync(tmpFile, fs5.readFileSync(file));
@@ -2024,19 +1881,23 @@ async function formatJson(file) {
       fs5.renameSync(tmpFile, file);
       return true;
     }
-    if (existsSync5(tmpFile)) fs5.unlinkSync(tmpFile);
+    if (existsSync5(tmpFile))
+      fs5.unlinkSync(tmpFile);
   } catch {
-    if (existsSync5(tmpFile)) fs5.unlinkSync(tmpFile);
+    if (existsSync5(tmpFile))
+      fs5.unlinkSync(tmpFile);
   }
   return false;
 }
 async function formatGo(file) {
-  if (!(await hasCommand("gofmt"))) return false;
+  if (!await hasCommand("gofmt"))
+    return false;
   const result = await runCommand("gofmt", ["-w", file]);
   return result.success;
 }
 async function formatRust(file) {
-  if (!(await hasCommand("rustfmt"))) return false;
+  if (!await hasCommand("rustfmt"))
+    return false;
   const result = await runCommand("rustfmt", [file]);
   return result.success;
 }
@@ -2053,27 +1914,32 @@ async function formatPython(file) {
   return formatted;
 }
 async function formatCpp(file) {
-  if (!(await hasCommand("clang-format"))) return false;
+  if (!await hasCommand("clang-format"))
+    return false;
   const result = await runCommand("clang-format", ["-i", file]);
   return result.success;
 }
 async function formatShell(file) {
-  if (!(await hasCommand("shfmt"))) return false;
+  if (!await hasCommand("shfmt"))
+    return false;
   const result = await runCommand("shfmt", ["-w", "-i", "2", file]);
   return result.success;
 }
 async function formatPrettier(file) {
-  if (!(await hasCommand("prettier"))) return false;
+  if (!await hasCommand("prettier"))
+    return false;
   const result = await runCommand("prettier", ["--write", file]);
   return result.success;
 }
 async function formatYq(file) {
-  if (!(await hasCommand("yq"))) return false;
+  if (!await hasCommand("yq"))
+    return false;
   const result = await runCommand("yq", ["eval", "-i", file]);
   return result.success;
 }
 async function formatTaplo(file) {
-  if (!(await hasCommand("taplo"))) return false;
+  if (!await hasCommand("taplo"))
+    return false;
   const result = await runCommand("taplo", ["fmt", file]);
   return result.success;
 }
@@ -2191,21 +2057,28 @@ async function formatFile(file) {
 function extractFilePathFromInput(input3) {
   try {
     const data = JSON.parse(input3);
-    if (data.file_path) return data.file_path;
-    if (data.path) return data.path;
-    if (data.file) return data.file;
-    if (data.destination) return data.destination;
-    if (data.target) return data.target;
+    if (data.file_path)
+      return data.file_path;
+    if (data.path)
+      return data.path;
+    if (data.file)
+      return data.file;
+    if (data.destination)
+      return data.destination;
+    if (data.target)
+      return data.target;
     if (data.tool_input) {
-      const toolInput =
-        typeof data.tool_input === "string"
-          ? JSON.parse(data.tool_input)
-          : data.tool_input;
-      if (toolInput.file_path) return toolInput.file_path;
-      if (toolInput.path) return toolInput.path;
-      if (toolInput.file) return toolInput.file;
-      if (toolInput.destination) return toolInput.destination;
-      if (toolInput.target) return toolInput.target;
+      const toolInput = typeof data.tool_input === "string" ? JSON.parse(data.tool_input) : data.tool_input;
+      if (toolInput.file_path)
+        return toolInput.file_path;
+      if (toolInput.path)
+        return toolInput.path;
+      if (toolInput.file)
+        return toolInput.file;
+      if (toolInput.destination)
+        return toolInput.destination;
+      if (toolInput.target)
+        return toolInput.target;
     }
   } catch {}
   return null;
@@ -2215,36 +2088,35 @@ var init_post_tool = __esm(() => {
   init_base();
   init_ui();
   PostTool = class PostTool extends BaseCommand {
-    static description =
-      "Format files after Write|Edit operations (PostToolUse hook)";
+    static description = "Format files after Write|Edit operations (PostToolUse hook)";
     static examples = [
       "<%= config.bin %> hooks post-tool --verbose src/file.ts",
       "<%= config.bin %> hooks post-tool --all",
-      "cohe hooks post-tool --silent < input.json",
+      "cohe hooks post-tool --silent < input.json"
     ];
     static flags = {
       silent: {
         description: "Run silently without output",
         shorthand: "s",
-        type: "boolean",
+        type: "boolean"
       },
       verbose: {
         description: "Show detailed output",
         shorthand: "v",
-        type: "boolean",
+        type: "boolean"
       },
       all: {
         description: "Format all files in current directory",
         shorthand: "a",
-        type: "boolean",
-      },
+        type: "boolean"
+      }
     };
     async run() {
       const { flags } = await this.parse(PostTool);
       const options = {
         silent: flags.silent ?? false,
         verbose: flags.verbose ?? false,
-        all: flags.all ?? false,
+        all: flags.all ?? false
       };
       const files = [];
       if (this.argv.length > 0) {
@@ -2271,52 +2143,21 @@ var init_post_tool = __esm(() => {
       }
       if (files.length === 0) {
         if (!options.silent) {
-          await this.renderApp(
-            /* @__PURE__ */ jsxDEV10(
-              Section,
-              {
-                title: "Post-Tool Format",
-                children: [
-                  /* @__PURE__ */ jsxDEV10(
-                    Info,
-                    {
-                      children: "No files to format.",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                  /* @__PURE__ */ jsxDEV10(
-                    Box9,
-                    {
-                      marginTop: 1,
-                      children: /* @__PURE__ */ jsxDEV10(
-                        Text10,
-                        {
-                          dimmed: true,
-                          children:
-                            "Usage: cohe hooks post-tool [--verbose] [--all] [files...]",
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                ],
-              },
-              undefined,
-              true,
-              undefined,
-              this
-            )
-          );
+          await this.renderApp(/* @__PURE__ */ jsxDEV10(Section, {
+            title: "Post-Tool Format",
+            children: [
+              /* @__PURE__ */ jsxDEV10(Info, {
+                children: "No files to format."
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
+                  dimmed: true,
+                  children: "Usage: cohe hooks post-tool [--verbose] [--all] [files...]"
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this));
         }
         return;
       }
@@ -2335,137 +2176,50 @@ var init_post_tool = __esm(() => {
             }
           }
         }
-        await this.renderApp(
-          /* @__PURE__ */ jsxDEV10(
-            Section,
-            {
-              title: "Post-Tool Format",
-              children: /* @__PURE__ */ jsxDEV10(
-                Box9,
-                {
-                  flexDirection: "column",
+        await this.renderApp(/* @__PURE__ */ jsxDEV10(Section, {
+          title: "Post-Tool Format",
+          children: /* @__PURE__ */ jsxDEV10(Box9, {
+            flexDirection: "column",
+            children: [
+              options.verbose && results.map((r) => /* @__PURE__ */ jsxDEV10(Box9, {
+                children: r.formatted ? /* @__PURE__ */ jsxDEV10(Success, {
+                  children: r.file
+                }, undefined, false, undefined, this) : r.success ? /* @__PURE__ */ jsxDEV10(Text10, {
+                  color: "gray",
+                  children: r.file
+                }, undefined, false, undefined, this) : /* @__PURE__ */ jsxDEV10(Warning, {
+                  children: r.file
+                }, undefined, false, undefined, this)
+              }, r.file, false, undefined, this)),
+              /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
                   children: [
-                    options.verbose &&
-                      results.map((r) =>
-                        /* @__PURE__ */ jsxDEV10(
-                          Box9,
-                          {
-                            children: r.formatted
-                              ? /* @__PURE__ */ jsxDEV10(
-                                  Success,
-                                  {
-                                    children: r.file,
-                                  },
-                                  undefined,
-                                  false,
-                                  undefined,
-                                  this
-                                )
-                              : r.success
-                                ? /* @__PURE__ */ jsxDEV10(
-                                    Text10,
-                                    {
-                                      color: "gray",
-                                      children: r.file,
-                                    },
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    this
-                                  )
-                                : /* @__PURE__ */ jsxDEV10(
-                                    Warning,
-                                    {
-                                      children: r.file,
-                                    },
-                                    undefined,
-                                    false,
-                                    undefined,
-                                    this
-                                  ),
-                          },
-                          r.file,
-                          false,
-                          undefined,
-                          this
-                        )
-                      ),
-                    /* @__PURE__ */ jsxDEV10(
-                      Box9,
-                      {
-                        marginTop: 1,
-                        children: /* @__PURE__ */ jsxDEV10(
-                          Text10,
-                          {
-                            children: [
-                              "Formatted:",
-                              " ",
-                              /* @__PURE__ */ jsxDEV10(
-                                Text10,
-                                {
-                                  bold: true,
-                                  color: "green",
-                                  children: formattedCount,
-                                },
-                                undefined,
-                                false,
-                                undefined,
-                                this
-                              ),
-                              " ",
-                              "file(s)",
-                            ],
-                          },
-                          undefined,
-                          true,
-                          undefined,
-                          this
-                        ),
-                      },
-                      undefined,
-                      false,
-                      undefined,
-                      this
-                    ),
-                    errorCount > 0 &&
-                      /* @__PURE__ */ jsxDEV10(
-                        Box9,
-                        {
-                          marginTop: 1,
-                          children: /* @__PURE__ */ jsxDEV10(
-                            Text10,
-                            {
-                              color: "yellow",
-                              children: [
-                                errorCount,
-                                " file(s) could not be formatted",
-                              ],
-                            },
-                            undefined,
-                            true,
-                            undefined,
-                            this
-                          ),
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                  ],
-                },
-                undefined,
-                true,
-                undefined,
-                this
-              ),
-            },
-            undefined,
-            false,
-            undefined,
-            this
-          )
-        );
+                    "Formatted:",
+                    " ",
+                    /* @__PURE__ */ jsxDEV10(Text10, {
+                      bold: true,
+                      color: "green",
+                      children: formattedCount
+                    }, undefined, false, undefined, this),
+                    " ",
+                    "file(s)"
+                  ]
+                }, undefined, true, undefined, this)
+              }, undefined, false, undefined, this),
+              errorCount > 0 && /* @__PURE__ */ jsxDEV10(Box9, {
+                marginTop: 1,
+                children: /* @__PURE__ */ jsxDEV10(Text10, {
+                  color: "yellow",
+                  children: [
+                    errorCount,
+                    " file(s) could not be formatted"
+                  ]
+                }, undefined, true, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        }, undefined, false, undefined, this));
       }
     }
   };
@@ -2474,16 +2228,14 @@ var init_post_tool = __esm(() => {
 // src/commands/hooks/stop.tsx
 var exports_stop = {};
 __export(exports_stop, {
-  default: () => HooksStop,
+  default: () => HooksStop
 });
-
 import { spawn as spawn2 } from "node:child_process";
 import * as fs6 from "node:fs";
 import { existsSync as existsSync6 } from "node:fs";
 import * as path6 from "node:path";
 import { Box as Box10, Text as Text11 } from "ink";
 import { jsxDEV as jsxDEV11 } from "react/jsx-dev-runtime";
-
 function extractMessageFromTranscript(transcriptPath, maxLength = 100) {
   if (!existsSync6(transcriptPath)) {
     return "Task completed";
@@ -2492,9 +2244,10 @@ function extractMessageFromTranscript(transcriptPath, maxLength = 100) {
     const content = fs6.readFileSync(transcriptPath, "utf-8");
     const lines = content.trim().split(`
 `);
-    for (let i = lines.length - 1; i >= 0; i--) {
+    for (let i = lines.length - 1;i >= 0; i--) {
       const line = lines[i].trim();
-      if (!line) continue;
+      if (!line)
+        continue;
       try {
         const entry = JSON.parse(line);
         let role = "";
@@ -2513,7 +2266,8 @@ function extractMessageFromTranscript(transcriptPath, maxLength = 100) {
             for (const block of content2) {
               if (block && typeof block === "object") {
                 const text = block.text || "";
-                if (text) textParts.push(text);
+                if (text)
+                  textParts.push(text);
               } else if (typeof block === "string") {
                 textParts.push(block);
               }
@@ -2536,22 +2290,14 @@ function extractMessageFromTranscript(transcriptPath, maxLength = 100) {
 }
 function sendNotification(title, message) {
   if (existsSync6("/usr/bin/notify-send")) {
-    spawn2(
-      "/usr/bin/notify-send",
-      [title, message, "-i", "dialog-information"],
-      {
-        stdio: "ignore",
-        detached: true,
-      }
-    );
+    spawn2("/usr/bin/notify-send", [title, message, "-i", "dialog-information"], {
+      stdio: "ignore",
+      detached: true
+    });
     return;
   }
   if (existsSync6("/usr/bin/osascript")) {
-    spawn2(
-      "/usr/bin/osascript",
-      ["-e", `display notification "${message}" with title "${title}"`],
-      { stdio: "ignore", detached: true }
-    );
+    spawn2("/usr/bin/osascript", ["-e", `display notification "${message}" with title "${title}"`], { stdio: "ignore", detached: true });
     return;
   }
 }
@@ -2561,7 +2307,7 @@ function playSound() {
     if (existsSync6(soundPath)) {
       spawn2("/usr/bin/paplay", [soundPath], {
         stdio: "ignore",
-        detached: true,
+        detached: true
       });
       return;
     }
@@ -2569,10 +2315,7 @@ function playSound() {
   if (existsSync6("/usr/bin/aplay")) {
     const soundPath = "/usr/share/sounds/alsa/Front_Center.wav";
     if (existsSync6(soundPath)) {
-      spawn2("/usr/bin/aplay", [soundPath], {
-        stdio: "ignore",
-        detached: true,
-      });
+      spawn2("/usr/bin/aplay", [soundPath], { stdio: "ignore", detached: true });
     }
   }
 }
@@ -2583,17 +2326,14 @@ function hasUncommittedChanges() {
   }
   try {
     const statusResult = spawn2("git", ["status", "--porcelain"], {
-      stdio: ["ignore", "pipe", "ignore"],
+      stdio: ["ignore", "pipe", "ignore"]
     });
     let statusOutput = "";
-    statusResult.stdout.on("data", (data) => (statusOutput += data.toString()));
+    statusResult.stdout.on("data", (data) => statusOutput += data.toString());
     return new Promise((resolve) => {
       statusResult.on("close", () => {
-        const lines = statusOutput
-          .trim()
-          .split(`
-`)
-          .filter(Boolean);
+        const lines = statusOutput.trim().split(`
+`).filter(Boolean);
         let staged = false;
         let unstaged = false;
         let untracked = false;
@@ -2625,8 +2365,8 @@ function runGitCommand(args) {
   return new Promise((resolve) => {
     const proc = spawn2("git", args, { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";
-    proc.stdout.on("data", (data) => (output += data.toString()));
-    proc.stderr.on("data", (data) => (output += data.toString()));
+    proc.stdout.on("data", (data) => output += data.toString());
+    proc.stderr.on("data", (data) => output += data.toString());
     proc.on("close", (code) => {
       resolve({ success: code === 0, output });
     });
@@ -2643,30 +2383,30 @@ var init_stop = __esm(() => {
     static description = "Session end hook - notifications and auto-commit";
     static examples = [
       "<%= config.bin %> hooks stop",
-      "cohe hooks stop --silent",
+      "cohe hooks stop --silent"
     ];
     static flags = {
       silent: {
         description: "Run silently without output",
         shorthand: "s",
-        type: "boolean",
+        type: "boolean"
       },
       verbose: {
         description: "Show detailed output",
         shorthand: "v",
-        type: "boolean",
+        type: "boolean"
       },
       "no-commit": {
         description: "Skip auto-commit",
-        type: "boolean",
-      },
+        type: "boolean"
+      }
     };
     async run() {
       const { flags } = await this.parse(HooksStop);
       const options = {
         silent: flags.silent ?? false,
         verbose: flags.verbose ?? false,
-        noCommit: flags["no-commit"] ?? false,
+        noCommit: flags["no-commit"] ?? false
       };
       let transcriptPath = "";
       try {
@@ -2680,8 +2420,7 @@ var init_stop = __esm(() => {
         playSound();
       }
       const changes = hasUncommittedChanges();
-      const hasChanges =
-        changes.staged || changes.unstaged || changes.untracked;
+      const hasChanges = changes.staged || changes.unstaged || changes.untracked;
       if (hasChanges && !options.noCommit) {
         if (options.verbose) {
           console.log(`
@@ -2701,159 +2440,81 @@ var init_stop = __esm(() => {
             "-m",
             `WIP: ${message}`,
             "--no-gpg-sign",
-            "--no-verify",
+            "--no-verify"
           ]);
           if (commitResult.success) {
             commitSuccess = true;
             if (!options.silent) {
               console.log(`✅ Changes committed (attempt ${attempts})`);
             }
-          } else if (attempts < maxAttempts) {
-            if (options.verbose) {
-              console.log(
-                `⚠️  Commit attempt ${attempts} failed, fixing and retrying...`
-              );
+          } else {
+            if (attempts < maxAttempts) {
+              if (options.verbose) {
+                console.log(`⚠️  Commit attempt ${attempts} failed, fixing and retrying...`);
+              }
+              const { spawn: spawn3 } = await import("node:child_process");
+              await new Promise((resolve) => {
+                spawn3("bun", ["x", "ultracite", "fix"], {
+                  stdio: "inherit",
+                  shell: true
+                }).on("close", () => resolve());
+              });
+              await runGitCommand(["add", "-u", "."]);
             }
-            const { spawn: spawn3 } = await import("node:child_process");
-            await new Promise((resolve) => {
-              spawn3("bun", ["x", "ultracite", "fix"], {
-                stdio: "inherit",
-                shell: true,
-              }).on("close", () => resolve());
-            });
-            await runGitCommand(["add", "-u", "."]);
           }
         }
         if (!(commitSuccess || options.silent)) {
           console.error("❌ Failed to commit after ${maxAttempts} attempts");
-          console.error(
-            "Please commit manually with: git add -u && git commit"
-          );
+          console.error("Please commit manually with: git add -u && git commit");
         }
       }
       if (options.silent) {
         return;
       }
-      await this.renderApp(
-        /* @__PURE__ */ jsxDEV11(
-          Section,
-          {
-            title: "Session Complete",
-            children: /* @__PURE__ */ jsxDEV11(
-              Box10,
-              {
-                flexDirection: "column",
-                children: [
-                  /* @__PURE__ */ jsxDEV11(
-                    Box10,
-                    {
-                      marginBottom: 1,
-                      children: /* @__PURE__ */ jsxDEV11(
-                        Text11,
-                        {
-                          children: message,
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                  hasChanges &&
-                    options.noCommit &&
-                    /* @__PURE__ */ jsxDEV11(
-                      Box10,
-                      {
-                        marginTop: 1,
-                        children: /* @__PURE__ */ jsxDEV11(
-                          Warning,
-                          {
-                            children:
-                              "You have uncommitted changes. Use --no-commit to skip auto-commit.",
-                          },
-                          undefined,
-                          false,
-                          undefined,
-                          this
-                        ),
-                      },
-                      undefined,
-                      false,
-                      undefined,
-                      this
-                    ),
-                  options.verbose &&
-                    /* @__PURE__ */ jsxDEV11(
-                      Box10,
-                      {
-                        flexDirection: "column",
-                        marginTop: 1,
-                        children: [
-                          /* @__PURE__ */ jsxDEV11(
-                            Info,
-                            {
-                              children: "Git status:",
-                            },
-                            undefined,
-                            false,
-                            undefined,
-                            this
-                          ),
-                          /* @__PURE__ */ jsxDEV11(
-                            Box10,
-                            {
-                              marginLeft: 2,
-                              children: /* @__PURE__ */ jsxDEV11(
-                                Text11,
-                                {
-                                  children: [
-                                    "Staged: ",
-                                    changes.staged ? "Yes" : "No",
-                                    " | Unstaged:",
-                                    " ",
-                                    changes.unstaged ? "Yes" : "No",
-                                    " | Untracked:",
-                                    " ",
-                                    changes.untracked ? "Yes" : "No",
-                                  ],
-                                },
-                                undefined,
-                                true,
-                                undefined,
-                                this
-                              ),
-                            },
-                            undefined,
-                            false,
-                            undefined,
-                            this
-                          ),
-                        ],
-                      },
-                      undefined,
-                      true,
-                      undefined,
-                      this
-                    ),
-                ],
-              },
-              undefined,
-              true,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        )
-      );
+      await this.renderApp(/* @__PURE__ */ jsxDEV11(Section, {
+        title: "Session Complete",
+        children: /* @__PURE__ */ jsxDEV11(Box10, {
+          flexDirection: "column",
+          children: [
+            /* @__PURE__ */ jsxDEV11(Box10, {
+              marginBottom: 1,
+              children: /* @__PURE__ */ jsxDEV11(Text11, {
+                children: message
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this),
+            hasChanges && options.noCommit && /* @__PURE__ */ jsxDEV11(Box10, {
+              marginTop: 1,
+              children: /* @__PURE__ */ jsxDEV11(Warning, {
+                children: "You have uncommitted changes. Use --no-commit to skip auto-commit."
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this),
+            options.verbose && /* @__PURE__ */ jsxDEV11(Box10, {
+              flexDirection: "column",
+              marginTop: 1,
+              children: [
+                /* @__PURE__ */ jsxDEV11(Info, {
+                  children: "Git status:"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsxDEV11(Box10, {
+                  marginLeft: 2,
+                  children: /* @__PURE__ */ jsxDEV11(Text11, {
+                    children: [
+                      "Staged: ",
+                      changes.staged ? "Yes" : "No",
+                      " | Unstaged:",
+                      " ",
+                      changes.unstaged ? "Yes" : "No",
+                      " | Untracked:",
+                      " ",
+                      changes.untracked ? "Yes" : "No"
+                    ]
+                  }, undefined, true, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this));
     }
   };
 });
@@ -2862,20 +2523,19 @@ var init_stop = __esm(() => {
 var require_package = __commonJS((exports, module) => {
   module.exports = {
     name: "@imbios/coding-helper",
-    description:
-      "CLI tool and Claude Code plugin for switching between Z.AI (GLM) and MiniMax API providers",
+    description: "CLI tool and Claude Code plugin for switching between Z.AI (GLM) and MiniMax API providers",
     version: "2.1.0",
     author: {
       name: "Imamuzzaki Abu Salam",
       email: "imamuzzaki@gmail.com",
-      url: "https://github.com/ImBIOS",
+      url: "https://github.com/ImBIOS"
     },
     bin: {
-      cohe: "./bin/cohe.js",
+      cohe: "./bin/cohe.js"
     },
     exports: {
       ".": "./src/oclif/base.tsx",
-      "./sdk": "./src/sdk/index.ts",
+      "./sdk": "./src/sdk/index.ts"
     },
     oclif: {
       bin: "cohe",
@@ -2883,34 +2543,34 @@ var require_package = __commonJS((exports, module) => {
       commands: {
         strategy: "pattern",
         target: "./src/commands",
-        glob: "**/*.tsx",
+        glob: "**/*.tsx"
       },
       default: "help",
       topicSeparator: " ",
       topics: {
         profile: {
-          description: "Manage configuration profiles",
+          description: "Manage configuration profiles"
         },
         account: {
-          description: "Multi-account management",
+          description: "Multi-account management"
         },
         mcp: {
-          description: "MCP server management",
+          description: "MCP server management"
         },
         auto: {
-          description: "Cross-provider auto-rotation",
+          description: "Cross-provider auto-rotation"
         },
         alert: {
-          description: "Alert configuration",
+          description: "Alert configuration"
         },
         dashboard: {
-          description: "Web dashboard management",
+          description: "Web dashboard management"
         },
         compare: {
-          description: "Side-by-side Claude comparison",
-        },
+          description: "Side-by-side Claude comparison"
+        }
       },
-      flexibleTaxonomy: true,
+      flexibleTaxonomy: true
     },
     dependencies: {
       "@anthropic-ai/claude-agent-sdk": "^0.2.29",
@@ -2920,7 +2580,7 @@ var require_package = __commonJS((exports, module) => {
       ink: "^6.6.0",
       jsonc: "^2.0.0",
       react: "^19.2.4",
-      zod: "^4.0.0",
+      zod: "^4.0.0"
     },
     devDependencies: {
       "@biomejs/biome": "^2.3.13",
@@ -2932,13 +2592,19 @@ var require_package = __commonJS((exports, module) => {
       "@types/react": "^19.2.4",
       husky: "^9.1.7",
       typescript: "^5.9.3",
-      ultracite: "^7.1.2",
+      ultracite: "^7.1.2"
     },
-    keywords: ["anthropic", "api", "claude-code", "cli", "glm", "minimax"],
+    keywords: [
+      "anthropic",
+      "api",
+      "claude-code",
+      "cli",
+      "glm",
+      "minimax"
+    ],
     scripts: {
       typecheck: "tsc --noEmit",
-      build:
-        "bun build src/cli.ts --outfile=bin/cohe.bundled.js --target=node --packages=external",
+      build: "bun build src/cli.ts --outfile=bin/cohe.bundled.js --target=node --packages=external",
       dev: "bun --hot src/cli.ts",
       "format:ws": "bun x syncpack@alpha format",
       link: "npm link",
@@ -2946,18 +2612,17 @@ var require_package = __commonJS((exports, module) => {
       test: "bun test",
       "test:env": "bun run src/test-env-keys.ts",
       "test:coverage": "bun test --coverage",
-      "test:watch": "bun test --watch",
+      "test:watch": "bun test --watch"
     },
-    type: "module",
+    type: "module"
   };
 });
 
 // src/utils/claude-spawner.ts
 import { spawn as spawn3 } from "node:child_process";
 import * as path7 from "node:path";
-
 async function spawnClaudeInstance(options) {
-  const { session, prompt, timeoutMs = 120_000, onOutput } = options;
+  const { session, prompt, timeoutMs = 120000, onOutput } = options;
   const startTime = Date.now();
   const claudeCli = await findClaudeCli();
   if (!claudeCli) {
@@ -2965,32 +2630,28 @@ async function spawnClaudeInstance(options) {
       provider: session.provider,
       output: "",
       timeMs: Date.now() - startTime,
-      error: "Claude CLI not found. Please install Claude Code.",
+      error: "Claude CLI not found. Please install Claude Code."
     };
   }
   const promptPath = path7.join(session.providerPath, ".prompt.txt");
   __require("node:fs").writeFileSync(promptPath, prompt);
   return new Promise((resolve) => {
-    const child = spawn3(
-      claudeCli,
-      [
-        "",
-        "--continue",
-        "--no-color",
-        "--model",
-        session.provider === "zai" ? "GLM-4.7" : "MiniMax-M2.1",
-      ],
-      {
-        cwd: session.providerPath,
-        env: {
-          ...process.env,
-          ANTHROPIC_AUTH_TOKEN: undefined,
-          ANTHROPIC_BASE_URL: undefined,
-          ANTHROPIC_MODEL: undefined,
-        },
-        stdio: ["pipe", "pipe", "pipe"],
-      }
-    );
+    const child = spawn3(claudeCli, [
+      "",
+      "--continue",
+      "--no-color",
+      "--model",
+      session.provider === "zai" ? "GLM-4.7" : "MiniMax-M2.1"
+    ], {
+      cwd: session.providerPath,
+      env: {
+        ...process.env,
+        ANTHROPIC_AUTH_TOKEN: undefined,
+        ANTHROPIC_BASE_URL: undefined,
+        ANTHROPIC_MODEL: undefined
+      },
+      stdio: ["pipe", "pipe", "pipe"]
+    });
     let stdout = "";
     let stderr = "";
     child.stdin.write(prompt);
@@ -3011,7 +2672,7 @@ async function spawnClaudeInstance(options) {
         provider: session.provider,
         output: stdout,
         timeMs: Date.now() - startTime,
-        error: "Timeout: Claude did not respond within timeout period",
+        error: "Timeout: Claude did not respond within timeout period"
       });
     }, timeoutMs);
     child.on("close", (code) => {
@@ -3021,14 +2682,14 @@ async function spawnClaudeInstance(options) {
         resolve({
           provider: session.provider,
           output: stdout,
-          timeMs,
+          timeMs
         });
       } else {
         resolve({
           provider: session.provider,
           output: stdout,
           timeMs,
-          error: `Claude exited with code ${code}${stderr ? `: ${stderr}` : ""}`,
+          error: `Claude exited with code ${code}${stderr ? `: ${stderr}` : ""}`
         });
       }
     });
@@ -3038,7 +2699,7 @@ async function spawnClaudeInstance(options) {
         provider: session.provider,
         output: stdout,
         timeMs: Date.now() - startTime,
-        error: `Failed to spawn Claude: ${err.message}`,
+        error: `Failed to spawn Claude: ${err.message}`
       });
     });
   });
@@ -3050,13 +2711,13 @@ async function findClaudeCli() {
     "/usr/bin/claude",
     `${process.env.HOME}/.npm-global/bin/claude`,
     `${process.env.HOME}/.bun/bin/claude`,
-    `${process.env.HOME}/.nvm/versions/node/*/bin/claude`,
+    `${process.env.HOME}/.nvm/versions/node/*/bin/claude`
   ];
   for (const p of possiblePaths) {
     try {
       const { which } = await import("bun");
       const resolved = await which(p);
-      if (resolved && (await isExecutable(resolved))) {
+      if (resolved && await isExecutable(resolved)) {
         return resolved;
       }
     } catch {}
@@ -3064,9 +2725,9 @@ async function findClaudeCli() {
   try {
     const { execSync } = await import("node:child_process");
     const result = execSync("which claude 2>/dev/null || echo ''", {
-      encoding: "utf-8",
+      encoding: "utf-8"
     }).trim();
-    if (result && (await isExecutable(result))) {
+    if (result && await isExecutable(result)) {
       return result;
     }
   } catch {}
@@ -3086,11 +2747,8 @@ var init_claude_spawner = () => {};
 // src/utils/isolation.ts
 import * as fs7 from "node:fs";
 import * as path8 from "node:path";
-
 function createIsolatedSession(provider, sessionId) {
-  const id =
-    sessionId ||
-    `compare_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const id = sessionId || `compare_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const basePath = `/tmp/imbios-compare/${id}`;
   const providerPath = path8.join(basePath, provider);
   const claudeDir = path8.join(providerPath, ".claude");
@@ -3100,7 +2758,7 @@ function createIsolatedSession(provider, sessionId) {
     basePath,
     providerPath,
     provider,
-    claudeDir,
+    claudeDir
   };
 }
 function generateClaudeMd(provider, customInstructions) {
@@ -3135,7 +2793,7 @@ When writing code, prefer TypeScript and follow these patterns:
 - Use optional chaining (?.) and nullish coalescing (??)
 
 For MCP tools, use the MiniMax-specific servers when available.
-`,
+`
   };
   let content = providerInstructions[provider];
   if (customInstructions) {
@@ -3155,35 +2813,19 @@ ANTHROPIC_MODEL="${defaultModel}"
 API_TIMEOUT_MS=3000000
 `;
 }
-function setupSessionFiles(
-  session,
-  apiKey,
-  baseUrl,
-  defaultModel,
-  customInstructions
-) {
+function setupSessionFiles(session, apiKey, baseUrl, defaultModel, customInstructions) {
   const claudeMdPath = path8.join(session.claudeDir, "CLAUDE.md");
-  fs7.writeFileSync(
-    claudeMdPath,
-    generateClaudeMd(session.provider, customInstructions)
-  );
+  fs7.writeFileSync(claudeMdPath, generateClaudeMd(session.provider, customInstructions));
   const envPath = path8.join(session.claudeDir, ".env");
   fs7.writeFileSync(envPath, generateEnvFile(apiKey, baseUrl, defaultModel));
   const settingsPath = path8.join(session.claudeDir, "settings.json");
-  fs7.writeFileSync(
-    settingsPath,
-    JSON.stringify(
-      {
-        version: "1.0.0",
-        provider: session.provider,
-        baseUrl,
-        defaultModel,
-        mcpServers: {},
-      },
-      null,
-      2
-    )
-  );
+  fs7.writeFileSync(settingsPath, JSON.stringify({
+    version: "1.0.0",
+    provider: session.provider,
+    baseUrl,
+    defaultModel,
+    mcpServers: {}
+  }, null, 2));
 }
 function symlinkProjectFiles(projectPath, sessionPath) {
   if (!fs7.existsSync(projectPath)) {
@@ -3196,12 +2838,7 @@ function symlinkProjectFiles(projectPath, sessionPath) {
     if (entry.name === ".claude" && entry.isDirectory()) {
       continue;
     }
-    if (
-      entry.name === "node_modules" ||
-      entry.name === ".git" ||
-      entry.name === "dist" ||
-      entry.name === "build"
-    ) {
+    if (entry.name === "node_modules" || entry.name === ".git" || entry.name === "dist" || entry.name === "build") {
       continue;
     }
     try {
@@ -3259,284 +2896,131 @@ var init_isolation = () => {};
 // src/commands/compare-ui.tsx
 import { Box as Box11, Text as Text12, useApp as useApp6, useInput } from "ink";
 import { jsxDEV as jsxDEV12 } from "react/jsx-dev-runtime";
-
-function ComparePanel({ title, color, result, isActive, isComplete }) {
-  return /* @__PURE__ */ jsxDEV12(
-    Box11,
-    {
-      borderColor: color,
-      borderStyle: "round",
-      flexDirection: "column",
-      paddingX: 1,
-      width: "50%",
-      children: [
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
+function ComparePanel({
+  title,
+  color,
+  result,
+  isActive,
+  isComplete
+}) {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
+    borderColor: color,
+    borderStyle: "round",
+    flexDirection: "column",
+    paddingX: 1,
+    width: "50%",
+    children: [
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          bold: true,
+          color,
+          children: title
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      !result && isActive && /* @__PURE__ */ jsxDEV12(Box11, {
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "yellow",
+            children: "●"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: " Initializing..."
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      !(result || isActive) && /* @__PURE__ */ jsxDEV12(Box11, {
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
+            children: "○"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: " Waiting..."
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      result?.error && /* @__PURE__ */ jsxDEV12(Box11, {
+        flexDirection: "column",
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "red",
+            children: "Error:"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: result.error
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      result && !result.error && /* @__PURE__ */ jsxDEV12(Box11, {
+        flexDirection: "column",
+        children: [
+          /* @__PURE__ */ jsxDEV12(Box11, {
             marginBottom: 1,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                bold: true,
-                color,
-                children: title,
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        !result &&
-          isActive &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
+            children: [
+              /* @__PURE__ */ jsxDEV12(Text12, {
+                color: isComplete ? "green" : "yellow",
+                children: isComplete ? "●" : "○"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsxDEV12(Text12, {
+                children: [
+                  " ",
+                  isComplete ? "Complete" : "Running..."
+                ]
+              }, undefined, true, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          result.timeMs > 0 && /* @__PURE__ */ jsxDEV12(Text12, {
+            children: [
+              "Time: ",
+              (result.timeMs / 1000).toFixed(2),
+              "s"
+            ]
+          }, undefined, true, undefined, this),
+          result.tokens !== undefined && /* @__PURE__ */ jsxDEV12(Text12, {
+            children: [
+              "Tokens: ",
+              result.tokens.toLocaleString()
+            ]
+          }, undefined, true, undefined, this),
+          result.cost !== undefined && /* @__PURE__ */ jsxDEV12(Text12, {
+            children: [
+              "Cost: $",
+              result.cost.toFixed(6)
+            ]
+          }, undefined, true, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            marginTop: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              children: "Output preview:"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            borderStyle: "single",
+            height: 10,
+            paddingLeft: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "yellow",
-                    children: "●",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    children: " Initializing...",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-        !(result || isActive) &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "gray",
-                    children: "○",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    children: " Waiting...",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-        result?.error &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              flexDirection: "column",
-              children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "red",
-                    children: "Error:",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    children: result.error,
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-        result &&
-          !result.error &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              flexDirection: "column",
-              children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Box11,
-                  {
-                    marginBottom: 1,
-                    children: [
-                      /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          color: isComplete ? "green" : "yellow",
-                          children: isComplete ? "●" : "○",
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                      /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          children: [
-                            " ",
-                            isComplete ? "Complete" : "Running...",
-                          ],
-                        },
-                        undefined,
-                        true,
-                        undefined,
-                        this
-                      ),
-                    ],
-                  },
-                  undefined,
-                  true,
-                  undefined,
-                  this
-                ),
-                result.timeMs > 0 &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      children: [
-                        "Time: ",
-                        (result.timeMs / 1000).toFixed(2),
-                        "s",
-                      ],
-                    },
-                    undefined,
-                    true,
-                    undefined,
-                    this
-                  ),
-                result.tokens !== undefined &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      children: ["Tokens: ", result.tokens.toLocaleString()],
-                    },
-                    undefined,
-                    true,
-                    undefined,
-                    this
-                  ),
-                result.cost !== undefined &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      children: ["Cost: $", result.cost.toFixed(6)],
-                    },
-                    undefined,
-                    true,
-                    undefined,
-                    this
-                  ),
-                /* @__PURE__ */ jsxDEV12(
-                  Box11,
-                  {
-                    marginTop: 1,
-                    children: /* @__PURE__ */ jsxDEV12(
-                      Text12,
-                      {
-                        children: "Output preview:",
-                      },
-                      undefined,
-                      false,
-                      undefined,
-                      this
-                    ),
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-                /* @__PURE__ */ jsxDEV12(
-                  Box11,
-                  {
-                    borderStyle: "single",
-                    height: 10,
-                    paddingLeft: 1,
-                    children: /* @__PURE__ */ jsxDEV12(
-                      Text12,
-                      {
-                        children: [
-                          result.output.slice(0, 500),
-                          result.output.length > 500 && "...",
-                        ],
-                      },
-                      undefined,
-                      true,
-                      undefined,
-                      this
-                    ),
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+                result.output.slice(0, 500),
+                result.output.length > 500 && "..."
+              ]
+            }, undefined, true, undefined, this)
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
-function CompareUI({ prompt, zaiResult, minimaxResult, onCancel, winner }) {
+function CompareUI({
+  prompt,
+  zaiResult,
+  minimaxResult,
+  onCancel,
+  winner
+}) {
   const { exit } = useApp6();
   useInput((input3, key) => {
-    if (input3 === "q" || (key.return && zaiResult && minimaxResult)) {
+    if (input3 === "q" || key.return && zaiResult && minimaxResult) {
       exit();
     }
     if (input3 === "\x03") {
@@ -3545,413 +3029,184 @@ function CompareUI({ prompt, zaiResult, minimaxResult, onCancel, winner }) {
     }
   });
   const isComplete = !!zaiResult && !!minimaxResult;
-  return /* @__PURE__ */ jsxDEV12(
-    Box11,
-    {
-      flexDirection: "column",
-      padding: 1,
-      children: [
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            marginBottom: 1,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
+    flexDirection: "column",
+    padding: 1,
+    children: [
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          bold: true,
+          children: "ImBIOS Provider Comparison"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
+            children: "Prompt: "
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: [
+              prompt.slice(0, 60),
+              prompt.length > 60 && "..."
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        flexDirection: "row",
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(ComparePanel, {
+            color: "blue",
+            isActive: !(zaiResult || isComplete),
+            isComplete: !!zaiResult,
+            result: zaiResult,
+            title: "Z.AI (GLM)"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            width: "1"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(ComparePanel, {
+            color: "green",
+            isActive: !(minimaxResult || isComplete),
+            isComplete: !!minimaxResult,
+            result: minimaxResult,
+            title: "MiniMax"
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      isComplete && /* @__PURE__ */ jsxDEV12(Box11, {
+        borderColor: "magenta",
+        borderStyle: "round",
+        flexDirection: "column",
+        children: [
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: [
+              /* @__PURE__ */ jsxDEV12(Text12, {
                 bold: true,
-                children: "ImBIOS Provider Comparison",
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            marginBottom: 1,
-            children: [
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: "gray",
-                  children: "Prompt: ",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  children: [prompt.slice(0, 60), prompt.length > 60 && "..."],
-                },
-                undefined,
-                true,
-                undefined,
-                this
-              ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            flexDirection: "row",
-            marginBottom: 1,
-            children: [
-              /* @__PURE__ */ jsxDEV12(
-                ComparePanel,
-                {
-                  color: "blue",
-                  isActive: !(zaiResult || isComplete),
-                  isComplete: !!zaiResult,
-                  result: zaiResult,
-                  title: "Z.AI (GLM)",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Box11,
-                {
-                  width: "1",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                ComparePanel,
-                {
-                  color: "green",
-                  isActive: !(minimaxResult || isComplete),
-                  isComplete: !!minimaxResult,
-                  result: minimaxResult,
-                  title: "MiniMax",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        isComplete &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              borderColor: "magenta",
-              borderStyle: "round",
-              flexDirection: "column",
+                children: "Result: "
+              }, undefined, false, undefined, this),
+              winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
+                color: "blue",
+                children: "Z.AI wins!"
+              }, undefined, false, undefined, this),
+              winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
+                color: "green",
+                children: "MiniMax wins!"
+              }, undefined, false, undefined, this),
+              winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
+                color: "yellow",
+                children: "It's a tie!"
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          zaiResult && minimaxResult && /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
               children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Box11,
-                  {
-                    paddingX: 1,
-                    children: [
-                      /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          bold: true,
-                          children: "Result: ",
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                      winner === "zai" &&
-                        /* @__PURE__ */ jsxDEV12(
-                          Text12,
-                          {
-                            color: "blue",
-                            children: "Z.AI wins!",
-                          },
-                          undefined,
-                          false,
-                          undefined,
-                          this
-                        ),
-                      winner === "minimax" &&
-                        /* @__PURE__ */ jsxDEV12(
-                          Text12,
-                          {
-                            color: "green",
-                            children: "MiniMax wins!",
-                          },
-                          undefined,
-                          false,
-                          undefined,
-                          this
-                        ),
-                      winner === "tie" &&
-                        /* @__PURE__ */ jsxDEV12(
-                          Text12,
-                          {
-                            color: "yellow",
-                            children: "It's a tie!",
-                          },
-                          undefined,
-                          false,
-                          undefined,
-                          this
-                        ),
-                    ],
-                  },
-                  undefined,
-                  true,
-                  undefined,
-                  this
-                ),
-                zaiResult &&
-                  minimaxResult &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Box11,
-                    {
-                      paddingX: 1,
-                      children: /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          children: [
-                            "Z.AI: ",
-                            (zaiResult.timeMs / 1000).toFixed(2),
-                            "s vs MiniMax:",
-                            " ",
-                            (minimaxResult.timeMs / 1000).toFixed(2),
-                            "s",
-                          ],
-                        },
-                        undefined,
-                        true,
-                        undefined,
-                        this
-                      ),
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                /* @__PURE__ */ jsxDEV12(
-                  Box11,
-                  {
-                    paddingBottom: 1,
-                    paddingX: 1,
-                    children: /* @__PURE__ */ jsxDEV12(
-                      Text12,
-                      {
-                        color: "gray",
-                        children: "Press Q or Enter to exit",
-                      },
-                      undefined,
-                      false,
-                      undefined,
-                      this
-                    ),
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-        !isComplete &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              children: /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: "gray",
-                  children: "Press Ctrl+C to cancel",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-            },
-            undefined,
-            false,
-            undefined,
-            this
-          ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+                "Z.AI: ",
+                (zaiResult.timeMs / 1000).toFixed(2),
+                "s vs MiniMax:",
+                " ",
+                (minimaxResult.timeMs / 1000).toFixed(2),
+                "s"
+              ]
+            }, undefined, true, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingBottom: 1,
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              color: "gray",
+              children: "Press Q or Enter to exit"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      !isComplete && /* @__PURE__ */ jsxDEV12(Box11, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          color: "gray",
+          children: "Press Ctrl+C to cancel"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
-function HistoryItem({ id, timestamp, prompt, winner, isSelected }) {
-  return /* @__PURE__ */ jsxDEV12(
-    Box11,
-    {
-      flexDirection: "column",
-      paddingX: 2,
-      paddingY: 1,
-      children: [
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
+function HistoryItem({
+  id,
+  timestamp,
+  prompt,
+  winner,
+  isSelected
+}) {
+  return /* @__PURE__ */ jsxDEV12(Box11, {
+    flexDirection: "column",
+    paddingX: 2,
+    paddingY: 1,
+    children: [
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: isSelected ? "green" : undefined,
+            children: isSelected ? ">" : " "
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            bold: true,
+            children: id.slice(0, 12)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
             children: [
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: isSelected ? "green" : undefined,
-                  children: isSelected ? ">" : " ",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  bold: true,
-                  children: id.slice(0, 12),
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: "gray",
-                  children: [" ", timestamp],
-                },
-                undefined,
-                true,
-                undefined,
-                this
-              ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            paddingLeft: 2,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                color: "gray",
-                children: [prompt.slice(0, 50), prompt.length > 50 && "..."],
-              },
-              undefined,
-              true,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            paddingLeft: 2,
-            children: [
-              winner === "zai" &&
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "blue",
-                    children: "Winner: Z.AI",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              winner === "minimax" &&
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "green",
-                    children: "Winner: MiniMax",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              winner === "tie" &&
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "yellow",
-                    children: "Tie",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              !winner &&
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "gray",
-                    children: "No result",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+              " ",
+              timestamp
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        paddingLeft: 2,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          color: "gray",
+          children: [
+            prompt.slice(0, 50),
+            prompt.length > 50 && "..."
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        paddingLeft: 2,
+        children: [
+          winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "blue",
+            children: "Winner: Z.AI"
+          }, undefined, false, undefined, this),
+          winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "green",
+            children: "Winner: MiniMax"
+          }, undefined, false, undefined, this),
+          winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "yellow",
+            children: "Tie"
+          }, undefined, false, undefined, this),
+          !winner && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
+            children: "No result"
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
-function HistoryList({ sessions, selectedIndex, onSelect, onView }) {
+function HistoryList({
+  sessions,
+  selectedIndex,
+  onSelect,
+  onView
+}) {
   useInput((_input, key) => {
     if (key.upArrow) {
       onSelect(Math.max(0, selectedIndex - 1));
@@ -3961,564 +3216,236 @@ function HistoryList({ sessions, selectedIndex, onSelect, onView }) {
       onView(sessions[selectedIndex].id);
     }
   });
-  return /* @__PURE__ */ jsxDEV12(
-    Box11,
-    {
-      flexDirection: "column",
-      children: [
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            padding: 1,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                bold: true,
-                children: "Comparison History",
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        sessions.length === 0
-          ? /* @__PURE__ */ jsxDEV12(
-              Box11,
-              {
-                padding: 2,
-                children: /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    color: "gray",
-                    children: "No comparison sessions found.",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            )
-          : sessions.map((session, index) =>
-              /* @__PURE__ */ jsxDEV12(
-                HistoryItem,
-                {
-                  id: session.id,
-                  isSelected: index === selectedIndex,
-                  prompt: session.prompt,
-                  timestamp: session.timestamp,
-                  winner: session.winner,
-                },
-                session.id,
-                false,
-                undefined,
-                this
-              )
-            ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            padding: 1,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                color: "gray",
-                children: "Use arrow keys to navigate, Enter to view details",
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+  return /* @__PURE__ */ jsxDEV12(Box11, {
+    flexDirection: "column",
+    children: [
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        padding: 1,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          bold: true,
+          children: "Comparison History"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      sessions.length === 0 ? /* @__PURE__ */ jsxDEV12(Box11, {
+        padding: 2,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          color: "gray",
+          children: "No comparison sessions found."
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this) : sessions.map((session, index) => /* @__PURE__ */ jsxDEV12(HistoryItem, {
+        id: session.id,
+        isSelected: index === selectedIndex,
+        prompt: session.prompt,
+        timestamp: session.timestamp,
+        winner: session.winner
+      }, session.id, false, undefined, this)),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        padding: 1,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          color: "gray",
+          children: "Use arrow keys to navigate, Enter to view details"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
-function SessionDetail({ session, onBack }) {
+function SessionDetail({
+  session,
+  onBack
+}) {
   useInput((input3) => {
     if (input3 === "q" || input3 === "\x1B") {
       onBack();
     }
   });
-  return /* @__PURE__ */ jsxDEV12(
-    Box11,
-    {
-      flexDirection: "column",
-      padding: 1,
-      children: [
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            marginBottom: 1,
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                bold: true,
-                children: ["Session: ", session.id],
-              },
-              undefined,
-              true,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            marginBottom: 1,
+  return /* @__PURE__ */ jsxDEV12(Box11, {
+    flexDirection: "column",
+    padding: 1,
+    children: [
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          bold: true,
+          children: [
+            "Session: ",
+            session.id
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
+            children: "Time: "
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: session.timestamp
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "gray",
+            children: "Prompt: "
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            children: session.prompt
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      session.winner && /* @__PURE__ */ jsxDEV12(Box11, {
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Text12, {
+            bold: true,
+            children: "Winner: "
+          }, undefined, false, undefined, this),
+          session.winner === "zai" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "blue",
+            children: "Z.AI"
+          }, undefined, false, undefined, this),
+          session.winner === "minimax" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "green",
+            children: "MiniMax"
+          }, undefined, false, undefined, this),
+          session.winner === "tie" && /* @__PURE__ */ jsxDEV12(Text12, {
+            color: "yellow",
+            children: "Tie"
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        borderStyle: "round",
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              bold: true,
+              color: "blue",
+              children: "Z.AI Result"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          session.zaiResult ? /* @__PURE__ */ jsxDEV12(Box11, {
+            flexDirection: "column",
+            paddingX: 1,
             children: [
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: "gray",
-                  children: "Time: ",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  children: session.timestamp,
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            marginBottom: 1,
+              /* @__PURE__ */ jsxDEV12(Text12, {
+                children: [
+                  "Time: ",
+                  (session.zaiResult.timeMs / 1000).toFixed(2),
+                  "s"
+                ]
+              }, undefined, true, undefined, this),
+              session.zaiResult.error ? /* @__PURE__ */ jsxDEV12(Text12, {
+                color: "red",
+                children: [
+                  "Error: ",
+                  session.zaiResult.error
+                ]
+              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
+                height: 15,
+                paddingTop: 1,
+                children: /* @__PURE__ */ jsxDEV12(Text12, {
+                  children: session.zaiResult.output.slice(0, 1000)
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              color: "gray",
+              children: "No result"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        borderStyle: "round",
+        marginBottom: 1,
+        children: [
+          /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              bold: true,
+              color: "green",
+              children: "MiniMax Result"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          session.minimaxResult ? /* @__PURE__ */ jsxDEV12(Box11, {
+            flexDirection: "column",
+            paddingX: 1,
             children: [
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  color: "gray",
-                  children: "Prompt: ",
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              /* @__PURE__ */ jsxDEV12(
-                Text12,
-                {
-                  children: session.prompt,
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        session.winner &&
-          /* @__PURE__ */ jsxDEV12(
-            Box11,
-            {
-              marginBottom: 1,
-              children: [
-                /* @__PURE__ */ jsxDEV12(
-                  Text12,
-                  {
-                    bold: true,
-                    children: "Winner: ",
-                  },
-                  undefined,
-                  false,
-                  undefined,
-                  this
-                ),
-                session.winner === "zai" &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      color: "blue",
-                      children: "Z.AI",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                session.winner === "minimax" &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      color: "green",
-                      children: "MiniMax",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                session.winner === "tie" &&
-                  /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      color: "yellow",
-                      children: "Tie",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-              ],
-            },
-            undefined,
-            true,
-            undefined,
-            this
-          ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            borderStyle: "round",
-            marginBottom: 1,
-            children: [
-              /* @__PURE__ */ jsxDEV12(
-                Box11,
-                {
-                  paddingX: 1,
-                  children: /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      bold: true,
-                      color: "blue",
-                      children: "Z.AI Result",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              session.zaiResult
-                ? /* @__PURE__ */ jsxDEV12(
-                    Box11,
-                    {
-                      flexDirection: "column",
-                      paddingX: 1,
-                      children: [
-                        /* @__PURE__ */ jsxDEV12(
-                          Text12,
-                          {
-                            children: [
-                              "Time: ",
-                              (session.zaiResult.timeMs / 1000).toFixed(2),
-                              "s",
-                            ],
-                          },
-                          undefined,
-                          true,
-                          undefined,
-                          this
-                        ),
-                        session.zaiResult.error
-                          ? /* @__PURE__ */ jsxDEV12(
-                              Text12,
-                              {
-                                color: "red",
-                                children: ["Error: ", session.zaiResult.error],
-                              },
-                              undefined,
-                              true,
-                              undefined,
-                              this
-                            )
-                          : /* @__PURE__ */ jsxDEV12(
-                              Box11,
-                              {
-                                height: 15,
-                                paddingTop: 1,
-                                children: /* @__PURE__ */ jsxDEV12(
-                                  Text12,
-                                  {
-                                    children: session.zaiResult.output.slice(
-                                      0,
-                                      1000
-                                    ),
-                                  },
-                                  undefined,
-                                  false,
-                                  undefined,
-                                  this
-                                ),
-                              },
-                              undefined,
-                              false,
-                              undefined,
-                              this
-                            ),
-                      ],
-                    },
-                    undefined,
-                    true,
-                    undefined,
-                    this
-                  )
-                : /* @__PURE__ */ jsxDEV12(
-                    Box11,
-                    {
-                      paddingX: 1,
-                      children: /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          color: "gray",
-                          children: "No result",
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            borderStyle: "round",
-            marginBottom: 1,
-            children: [
-              /* @__PURE__ */ jsxDEV12(
-                Box11,
-                {
-                  paddingX: 1,
-                  children: /* @__PURE__ */ jsxDEV12(
-                    Text12,
-                    {
-                      bold: true,
-                      color: "green",
-                      children: "MiniMax Result",
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-                },
-                undefined,
-                false,
-                undefined,
-                this
-              ),
-              session.minimaxResult
-                ? /* @__PURE__ */ jsxDEV12(
-                    Box11,
-                    {
-                      flexDirection: "column",
-                      paddingX: 1,
-                      children: [
-                        /* @__PURE__ */ jsxDEV12(
-                          Text12,
-                          {
-                            children: [
-                              "Time: ",
-                              (session.minimaxResult.timeMs / 1000).toFixed(2),
-                              "s",
-                            ],
-                          },
-                          undefined,
-                          true,
-                          undefined,
-                          this
-                        ),
-                        session.minimaxResult.error
-                          ? /* @__PURE__ */ jsxDEV12(
-                              Text12,
-                              {
-                                color: "red",
-                                children: [
-                                  "Error: ",
-                                  session.minimaxResult.error,
-                                ],
-                              },
-                              undefined,
-                              true,
-                              undefined,
-                              this
-                            )
-                          : /* @__PURE__ */ jsxDEV12(
-                              Box11,
-                              {
-                                height: 15,
-                                paddingTop: 1,
-                                children: /* @__PURE__ */ jsxDEV12(
-                                  Text12,
-                                  {
-                                    children:
-                                      session.minimaxResult.output.slice(
-                                        0,
-                                        1000
-                                      ),
-                                  },
-                                  undefined,
-                                  false,
-                                  undefined,
-                                  this
-                                ),
-                              },
-                              undefined,
-                              false,
-                              undefined,
-                              this
-                            ),
-                      ],
-                    },
-                    undefined,
-                    true,
-                    undefined,
-                    this
-                  )
-                : /* @__PURE__ */ jsxDEV12(
-                    Box11,
-                    {
-                      paddingX: 1,
-                      children: /* @__PURE__ */ jsxDEV12(
-                        Text12,
-                        {
-                          color: "gray",
-                          children: "No result",
-                        },
-                        undefined,
-                        false,
-                        undefined,
-                        this
-                      ),
-                    },
-                    undefined,
-                    false,
-                    undefined,
-                    this
-                  ),
-            ],
-          },
-          undefined,
-          true,
-          undefined,
-          this
-        ),
-        /* @__PURE__ */ jsxDEV12(
-          Box11,
-          {
-            children: /* @__PURE__ */ jsxDEV12(
-              Text12,
-              {
-                color: "gray",
-                children: "Press Q to go back",
-              },
-              undefined,
-              false,
-              undefined,
-              this
-            ),
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        ),
-      ],
-    },
-    undefined,
-    true,
-    undefined,
-    this
-  );
+              /* @__PURE__ */ jsxDEV12(Text12, {
+                children: [
+                  "Time: ",
+                  (session.minimaxResult.timeMs / 1000).toFixed(2),
+                  "s"
+                ]
+              }, undefined, true, undefined, this),
+              session.minimaxResult.error ? /* @__PURE__ */ jsxDEV12(Text12, {
+                color: "red",
+                children: [
+                  "Error: ",
+                  session.minimaxResult.error
+                ]
+              }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
+                height: 15,
+                paddingTop: 1,
+                children: /* @__PURE__ */ jsxDEV12(Text12, {
+                  children: session.minimaxResult.output.slice(0, 1000)
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this) : /* @__PURE__ */ jsxDEV12(Box11, {
+            paddingX: 1,
+            children: /* @__PURE__ */ jsxDEV12(Text12, {
+              color: "gray",
+              children: "No result"
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsxDEV12(Box11, {
+        children: /* @__PURE__ */ jsxDEV12(Text12, {
+          color: "gray",
+          children: "Press Q to go back"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 }
 var init_compare_ui = () => {};
 
 // src/commands/compare.tsx
 var exports_compare = {};
 __export(exports_compare, {
-  handleCompare: () => handleCompare,
+  handleCompare: () => handleCompare
 });
-
 import * as readline from "node:readline";
 import { render as render7 } from "ink";
 import { useState as useState6 } from "react";
 import { jsxDEV as jsxDEV13 } from "react/jsx-dev-runtime";
-
 async function readInteractiveInput() {
   return new Promise((resolve) => {
     console.log("");
-    console.log(
-      "Enter your prompt (Ctrl+D or Ctrl+Z to submit, Ctrl+C to cancel):"
-    );
+    console.log("Enter your prompt (Ctrl+D or Ctrl+Z to submit, Ctrl+C to cancel):");
     console.log("".padEnd(60, "─"));
     const lines = [];
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
-      terminal: true,
+      terminal: true
     });
     rl.on("line", (line) => {
       lines.push(line);
     });
     rl.on("close", () => {
-      const prompt = lines
-        .join(`
-`)
-        .trim();
+      const prompt = lines.join(`
+`).trim();
       if (prompt) {
         success("Prompt received. Starting comparison...");
       }
@@ -4567,7 +3494,7 @@ async function handleCompare(args) {
     timeout: parsedArgs.timeout,
     iterations: parsedArgs.iterations,
     save: !parsedArgs.noSave,
-    strategy: parsedArgs.strategy,
+    strategy: parsedArgs.strategy
   });
 }
 function parseCompareArgs(args) {
@@ -4576,7 +3503,7 @@ function parseCompareArgs(args) {
     timeout: 120,
     iterations: 1,
     save: true,
-    strategy: "simultaneous",
+    strategy: "simultaneous"
   };
   let i = 0;
   while (i < args.length) {
@@ -4626,7 +3553,7 @@ async function runComparison(options) {
     timeout = 120,
     iterations = 1,
     save = true,
-    strategy,
+    strategy
   } = options;
   const zaiConfig = zaiProvider.getConfig();
   const minimaxConfig = minimaxProvider.getConfig();
@@ -4637,20 +3564,10 @@ async function runComparison(options) {
   const zaiSession = createIsolatedSession("zai");
   const minimaxSession = createIsolatedSession("minimax");
   if (zaiConfig.apiKey) {
-    setupSessionFiles(
-      zaiSession,
-      zaiConfig.apiKey,
-      zaiConfig.baseUrl,
-      zaiConfig.defaultModel
-    );
+    setupSessionFiles(zaiSession, zaiConfig.apiKey, zaiConfig.baseUrl, zaiConfig.defaultModel);
   }
   if (minimaxConfig.apiKey) {
-    setupSessionFiles(
-      minimaxSession,
-      minimaxConfig.apiKey,
-      minimaxConfig.baseUrl,
-      minimaxConfig.defaultModel
-    );
+    setupSessionFiles(minimaxSession, minimaxConfig.apiKey, minimaxConfig.baseUrl, minimaxConfig.defaultModel);
   }
   const projectPath = process.cwd();
   symlinkProjectFiles(projectPath, zaiSession.providerPath);
@@ -4668,7 +3585,7 @@ async function runComparison(options) {
         const result = await spawnClaudeInstance({
           session: zaiSession,
           prompt,
-          timeoutMs: timeout * 1000,
+          timeoutMs: timeout * 1000
         });
         setZaiResult(result);
       }
@@ -4676,33 +3593,29 @@ async function runComparison(options) {
         const result = await spawnClaudeInstance({
           session: minimaxSession,
           prompt,
-          timeoutMs: timeout * 1000,
+          timeoutMs: timeout * 1000
         });
         setMiniMaxResult(result);
       }
     } else {
       const promises = [];
       if (zaiConfig.apiKey) {
-        promises.push(
-          spawnClaudeInstance({
-            session: zaiSession,
-            prompt,
-            timeoutMs: timeout * 1000,
-          }).then((result) => {
-            setZaiResult(result);
-          })
-        );
+        promises.push(spawnClaudeInstance({
+          session: zaiSession,
+          prompt,
+          timeoutMs: timeout * 1000
+        }).then((result) => {
+          setZaiResult(result);
+        }));
       }
       if (minimaxConfig.apiKey) {
-        promises.push(
-          spawnClaudeInstance({
-            session: minimaxSession,
-            prompt,
-            timeoutMs: timeout * 1000,
-          }).then((result) => {
-            setMiniMaxResult(result);
-          })
-        );
+        promises.push(spawnClaudeInstance({
+          session: minimaxSession,
+          prompt,
+          timeoutMs: timeout * 1000
+        }).then((result) => {
+          setMiniMaxResult(result);
+        }));
       }
       await Promise.all(promises);
     }
@@ -4730,26 +3643,17 @@ async function runComparison(options) {
         prompt,
         zaiResult: zaiResult ?? undefined,
         minimaxResult: minimaxResult ?? undefined,
-        winner: winner ?? undefined,
+        winner: winner ?? undefined
       };
       saveCompareSession(record);
     }
-    const { waitUntilExit } = render7(
-      /* @__PURE__ */ jsxDEV13(
-        CompareUI,
-        {
-          minimaxResult,
-          onCancel: cleanup,
-          prompt,
-          winner: winner ?? null,
-          zaiResult,
-        },
-        undefined,
-        false,
-        undefined,
-        this
-      )
-    );
+    const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(CompareUI, {
+      minimaxResult,
+      onCancel: cleanup,
+      prompt,
+      winner: winner ?? null,
+      zaiResult
+    }, undefined, false, undefined, this));
     await waitUntilExit();
   } finally {
     cleanup();
@@ -4766,48 +3670,30 @@ async function showHistoryList() {
     id: s.id,
     timestamp: new Date(s.timestamp).toLocaleString(),
     prompt: s.prompt,
-    winner: s.winner,
+    winner: s.winner
   }));
   const [selectedIndex, setSelectedIndex] = useState6(0);
   const [viewSessionId, setViewSessionId] = useState6(null);
   if (viewSessionId) {
     const session = getCompareSession(viewSessionId);
     if (session) {
-      const { waitUntilExit } = render7(
-        /* @__PURE__ */ jsxDEV13(
-          SessionDetail,
-          {
-            onBack: () => setViewSessionId(null),
-            session: {
-              ...session,
-              timestamp: new Date(session.timestamp).toLocaleString(),
-            },
-          },
-          undefined,
-          false,
-          undefined,
-          this
-        )
-      );
+      const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(SessionDetail, {
+        onBack: () => setViewSessionId(null),
+        session: {
+          ...session,
+          timestamp: new Date(session.timestamp).toLocaleString()
+        }
+      }, undefined, false, undefined, this));
       await waitUntilExit();
       setViewSessionId(null);
     }
   } else {
-    const { waitUntilExit } = render7(
-      /* @__PURE__ */ jsxDEV13(
-        HistoryList,
-        {
-          onSelect: setSelectedIndex,
-          onView: setViewSessionId,
-          selectedIndex,
-          sessions,
-        },
-        undefined,
-        false,
-        undefined,
-        this
-      )
-    );
+    const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(HistoryList, {
+      onSelect: setSelectedIndex,
+      onView: setViewSessionId,
+      selectedIndex,
+      sessions
+    }, undefined, false, undefined, this));
     await waitUntilExit();
   }
 }
@@ -4822,22 +3708,13 @@ async function viewSession(sessionId) {
     info("Use 'cohe compare history' to list sessions.");
     return;
   }
-  const { waitUntilExit } = render7(
-    /* @__PURE__ */ jsxDEV13(
-      SessionDetail,
-      {
-        onBack: () => {},
-        session: {
-          ...session,
-          timestamp: new Date(session.timestamp).toLocaleString(),
-        },
-      },
-      undefined,
-      false,
-      undefined,
-      this
-    )
-  );
+  const { waitUntilExit } = render7(/* @__PURE__ */ jsxDEV13(SessionDetail, {
+    onBack: () => {},
+    session: {
+      ...session,
+      timestamp: new Date(session.timestamp).toLocaleString()
+    }
+  }, undefined, false, undefined, this));
   await waitUntilExit();
 }
 async function diffSessions(id1, id2) {
@@ -4858,15 +3735,11 @@ Session 1: ${id1}`);
 `);
   if (session1.zaiResult && session2.zaiResult) {
     const diff = session1.zaiResult.timeMs - session2.zaiResult.timeMs;
-    console.log(
-      `Z.AI Time Diff: ${diff > 0 ? "+" : ""}${(diff / 1000).toFixed(2)}s`
-    );
+    console.log(`Z.AI Time Diff: ${diff > 0 ? "+" : ""}${(diff / 1000).toFixed(2)}s`);
   }
   if (session1.minimaxResult && session2.minimaxResult) {
     const diff = session1.minimaxResult.timeMs - session2.minimaxResult.timeMs;
-    console.log(
-      `MiniMax Time Diff: ${diff > 0 ? "+" : ""}${(diff / 1000).toFixed(2)}s`
-    );
+    console.log(`MiniMax Time Diff: ${diff > 0 ? "+" : ""}${(diff / 1000).toFixed(2)}s`);
   }
   console.log(`
 Winner 1: ${session1.winner || "N/A"}`);
@@ -4884,7 +3757,7 @@ var init_compare = __esm(() => {
 // src/commands/index.ts
 async function withRetry(operation, context, validator, maxRetries = 3) {
   let lastError = null;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+  for (let attempt = 1;attempt <= maxRetries; attempt++) {
     try {
       const result = await operation();
       if (validator && !validator(result)) {
@@ -4897,9 +3770,7 @@ async function withRetry(operation, context, validator, maxRetries = 3) {
     } catch (err) {
       lastError = err;
       if (attempt < maxRetries) {
-        process.stderr.write(
-          `\r  ⏳ Retrying ${context}... (${attempt}/${maxRetries})`
-        );
+        process.stderr.write(`\r  ⏳ Retrying ${context}... (${attempt}/${maxRetries})`);
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } else {
         process.stderr.write("\r" + " ".repeat(60) + "\r");
@@ -4914,10 +3785,7 @@ async function handleConfig() {
   for (const provider of providers) {
     const existingConfig = getProviderConfig(provider);
     if (existingConfig.apiKey) {
-      const reconfigure = await confirm(
-        `${provider.toUpperCase()} is already configured. Reconfigure?`,
-        false
-      );
+      const reconfigure = await confirm(`${provider.toUpperCase()} is already configured. Reconfigure?`, false);
       if (!reconfigure) {
         info(`Skipping ${provider.toUpperCase()} - already configured.`);
         continue;
@@ -4926,10 +3794,7 @@ async function handleConfig() {
     info(`
 Configuring ${provider.toUpperCase()} provider...`);
     const apiKey = await password(`Enter API Key for ${provider}:`);
-    const baseUrl = await input(
-      "Base URL:",
-      existingConfig.baseUrl || PROVIDERS[provider]().getConfig().baseUrl
-    );
+    const baseUrl = await input("Base URL:", existingConfig.baseUrl || PROVIDERS[provider]().getConfig().baseUrl);
     if (!apiKey) {
       warning(`Skipping ${provider.toUpperCase()} - no API key provided.`);
       continue;
@@ -4947,9 +3812,7 @@ async function handleSwitch(args) {
   const provider = PROVIDERS[targetProvider]();
   const config = provider.getConfig();
   if (!config.apiKey) {
-    warning(
-      `${provider.displayName} is not configured. Run "cohe config" first.`
-    );
+    warning(`${provider.displayName} is not configured. Run "cohe config" first.`);
     return;
   }
   setActiveProvider(targetProvider);
@@ -4964,21 +3827,17 @@ async function handleStatus() {
   const hasApiKey = Boolean(config.apiKey);
   table({
     "Active Provider": provider.displayName,
-    "API Key": hasApiKey
-      ? `••••••••${config.apiKey.slice(-4)}`
-      : "Not configured",
+    "API Key": hasApiKey ? `••••••••${config.apiKey.slice(-4)}` : "Not configured",
     "Base URL": config.baseUrl,
     "Default Model": config.defaultModel,
-    Connection: hasApiKey ? "Ready" : "Not configured",
+    Connection: hasApiKey ? "Ready" : "Not configured"
   });
   const otherProviderKey = activeProvider === "zai" ? "minimax" : "zai";
   const otherProvider = PROVIDERS[otherProviderKey]();
   const otherConfig = otherProvider.getConfig();
   const otherHasKey = Boolean(otherConfig.apiKey);
   info("");
-  info(
-    `${otherProvider.displayName}: ${otherHasKey ? "Configured" : "Not configured"}`
-  );
+  info(`${otherProvider.displayName}: ${otherHasKey ? "Configured" : "Not configured"}`);
   const activeProfile = getActiveProfile();
   if (activeProfile) {
     info("");
@@ -4989,9 +3848,7 @@ async function handleStatus() {
   if (activeAccount) {
     info("");
     info(`Active Account: ${activeAccount.name} (${activeAccount.provider})`);
-    info(
-      `Rotation: ${v2Config.rotation.enabled ? v2Config.rotation.strategy : "disabled"}`
-    );
+    info(`Rotation: ${v2Config.rotation.enabled ? v2Config.rotation.strategy : "disabled"}`);
   }
 }
 async function handleUsage(verbose = false) {
@@ -5008,15 +3865,10 @@ async function handleUsage(verbose = false) {
   console.log("");
   for (const account of accounts) {
     const provider = PROVIDERS[account.provider]();
-    const usage = await withRetry(
-      () =>
-        provider.getUsage({
-          apiKey: account.apiKey,
-          groupId: account.groupId,
-        }),
-      `${account.name} usage fetch`,
-      (result) => result.limit > 0
-    );
+    const usage = await withRetry(() => provider.getUsage({
+      apiKey: account.apiKey,
+      groupId: account.groupId
+    }), `${account.name} usage fetch`, (result) => result.limit > 0 || result.percentUsed > 0);
     const isActiveModel = config.activeModelProviderId === account.id;
     const isActiveMcp = config.activeMcpProviderId === account.id;
     const isActiveAccount = config.activeAccountId === account.id;
@@ -5035,37 +3887,25 @@ async function handleUsage(verbose = false) {
       statusIndicator = " →";
       statusText = " [Active account]";
     }
-    console.log(
-      `${statusIndicator} ${account.name} (${account.provider})${statusText}`
-    );
+    console.log(`${statusIndicator} ${account.name} (${account.provider})${statusText}`);
     if (account.provider === "minimax" && !account.groupId) {
       console.log("     ⚠️  Missing groupId - usage data may be incomplete");
     }
-    if (usage && usage.limit > 0) {
+    if (usage && (usage.limit > 0 || usage.percentUsed > 0)) {
       if (account.provider === "zai" && usage.modelUsage && usage.mcpUsage) {
         const modelMark = isActiveModel ? "* " : "  ";
         const mcpMark = isActiveMcp ? "* " : "  ";
-        console.log(
-          `     ${modelMark}Model: ${Math.round(usage.modelUsage.percentUsed)}%`
-        );
-        console.log(
-          `     ${mcpMark}MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`
-        );
+        console.log(`     ${modelMark}Model: ${Math.round(usage.modelUsage.percentUsed)}%`);
+        console.log(`     ${mcpMark}MCP:   ${Math.round(usage.mcpUsage.percentUsed)}%`);
         if (verbose) {
           console.log("     Model:");
           console.log(`       Used:      ${Math.round(usage.modelUsage.used)}`);
-          console.log(
-            `       Limit:     ${Math.round(usage.modelUsage.limit)}`
-          );
-          console.log(
-            `       Remaining: ${Math.round(usage.modelUsage.remaining)}`
-          );
+          console.log(`       Limit:     ${Math.round(usage.modelUsage.limit)}`);
+          console.log(`       Remaining: ${Math.round(usage.modelUsage.remaining)}`);
           console.log("     MCP:");
           console.log(`       Used:      ${Math.round(usage.mcpUsage.used)}`);
           console.log(`       Limit:     ${Math.round(usage.mcpUsage.limit)}`);
-          console.log(
-            `       Remaining: ${Math.round(usage.mcpUsage.remaining)}`
-          );
+          console.log(`       Remaining: ${Math.round(usage.mcpUsage.remaining)}`);
         }
       } else {
         const displayPercent = usage.percentUsed;
@@ -5107,10 +3947,8 @@ async function handleHistory() {
   console.log(`  ${activeProvider.toUpperCase()} Usage (Last ${history.length} days):
 `);
   history.forEach((record) => {
-    const percent = record.limit > 0 ? (record.used / record.limit) * 100 : 0;
-    const bar =
-      "█".repeat(Math.ceil(percent / 5)) +
-      "░".repeat(20 - Math.ceil(percent / 5));
+    const percent = record.limit > 0 ? record.used / record.limit * 100 : 0;
+    const bar = "█".repeat(Math.ceil(percent / 5)) + "░".repeat(20 - Math.ceil(percent / 5));
     console.log(`  ${record.date} │ ${bar} │ ${percent.toFixed(1)}%`);
   });
 }
@@ -5118,11 +3956,11 @@ async function handleCost(model) {
   section("Cost Estimation");
   const costs = {
     "GLM-4.7": 0.0001,
-    "GLM-4.5-Air": 0.000_05,
-    "MiniMax-M2.1": 0.000_08,
+    "GLM-4.5-Air": 0.00005,
+    "MiniMax-M2.1": 0.00008
   };
   const models = Object.keys(costs);
-  const selectedModel = model || (await modelSelection(models));
+  const selectedModel = model || await modelSelection(models);
   const cost = costs[selectedModel];
   if (!cost) {
     warning(`Unknown model: ${selectedModel}`);
@@ -5132,7 +3970,7 @@ async function handleCost(model) {
   table({
     Model: selectedModel,
     "Input (1K tokens)": `$${(cost * 1000).toFixed(6)}`,
-    "Output (1K tokens)": `$${(cost * 1000 * 2).toFixed(6)}`,
+    "Output (1K tokens)": `$${(cost * 1000 * 2).toFixed(6)}`
   });
 }
 async function handleTest() {
@@ -5141,9 +3979,7 @@ async function handleTest() {
   const provider = PROVIDERS[activeProvider]();
   const config = provider.getConfig();
   if (!config.apiKey) {
-    error(
-      `${provider.displayName} is not configured. Run "cohe config" first.`
-    );
+    error(`${provider.displayName} is not configured. Run "cohe config" first.`);
     return;
   }
   info(`Testing ${provider.displayName} connection...`);
@@ -5160,9 +3996,7 @@ async function handlePlugin(action) {
   const pluginManifestPath = `${pluginDir}/.claude-plugin/manifest.json`;
   switch (action) {
     case "install":
-      info(
-        "Plugin manifest installed at: ~/.claude/.claude-plugin/manifest.json"
-      );
+      info("Plugin manifest installed at: ~/.claude/.claude-plugin/manifest.json");
       success("Plugin installed! Restart Claude Code to see new commands.");
       break;
     case "uninstall":
@@ -5188,7 +4022,7 @@ async function handleDoctor() {
   const configPath = getConfigPath2();
   checks.push([
     "Config file exists",
-    __require("node:fs").existsSync(configPath),
+    __require("node:fs").existsSync(configPath)
   ]);
   checks.push(["API key configured", Boolean(config.apiKey)]);
   if (config.apiKey) {
@@ -5250,20 +4084,16 @@ async function handleModels(providerName) {
 async function handleCompletion(shell) {
   section("Shell Completion");
   const shells = ["bash", "zsh", "fish"];
-  const selectedShell = shell || (await select("Select shell:", shells, 0));
+  const selectedShell = shell || await select("Select shell:", shells, 0);
   if (!shells.includes(selectedShell)) {
-    error(
-      `Unsupported shell: ${shell}. Supported shells: ${shells.join(", ")}`
-    );
+    error(`Unsupported shell: ${shell}. Supported shells: ${shells.join(", ")}`);
     return;
   }
   try {
     const completion = getShellCompletion(selectedShell);
     console.log(completion);
     info("");
-    info(
-      `To enable ${selectedShell} completion, add the above to your shell configuration.`
-    );
+    info(`To enable ${selectedShell} completion, add the above to your shell configuration.`);
     info("For bash: Add to ~/.bashrc or ~/.bash_completion");
     info("For zsh: Add to ~/.zshrc");
     info("For fish: Add to ~/.config/fish/completions/cohe.fish");
@@ -5279,16 +4109,12 @@ async function handleProfile(args) {
       const profileList = listProfiles();
       const activeProfile = getActiveProfile();
       if (profileList.length === 0) {
-        info(
-          "No profiles configured. Use 'cohe profile create' to create one."
-        );
+        info("No profiles configured. Use 'cohe profile create' to create one.");
         return;
       }
       profileList.forEach((profile) => {
         const isActive = profile.name === activeProfile?.name;
-        console.log(
-          `  ${isActive ? "●" : "○"} ${profile.name} (${profile.provider})`
-        );
+        console.log(`  ${isActive ? "●" : "○"} ${profile.name} (${profile.provider})`);
       });
       info("");
       info(`Active profile: ${activeProfile?.name || "none"}`);
@@ -5307,13 +4133,8 @@ async function handleProfile(args) {
         error("API key is required.");
         return;
       }
-      const baseUrl = await input(
-        "Base URL:",
-        PROVIDERS[provider]().getConfig().baseUrl
-      );
-      const defaultModel = await modelSelection(
-        PROVIDERS[provider]().getModels()
-      );
+      const baseUrl = await input("Base URL:", PROVIDERS[provider]().getConfig().baseUrl);
+      const defaultModel = await modelSelection(PROVIDERS[provider]().getModels());
       createProfile(name, provider, apiKey, baseUrl, defaultModel);
       success(`Profile "${name}" created successfully!`);
       break;
@@ -5340,9 +4161,7 @@ async function handleProfile(args) {
       if (deleteProfile(name)) {
         success(`Profile "${name}" deleted.`);
       } else {
-        error(
-          `Failed to delete profile "${name}". It may be active or not exist.`
-        );
+        error(`Failed to delete profile "${name}". It may be active or not exist.`);
       }
       break;
     }
@@ -5395,9 +4214,7 @@ async function handleAccount(args) {
       }
       accounts.forEach((acc) => {
         const isActive = acc.id === activeAccount?.id;
-        console.log(
-          `  ${isActive ? "●" : "○"} ${acc.name} (${acc.provider}) - ${acc.isActive ? "active" : "inactive"}`
-        );
+        console.log(`  ${isActive ? "●" : "○"} ${acc.name} (${acc.provider}) - ${acc.isActive ? "active" : "inactive"}`);
       });
       info("");
       info(`Active account: ${activeAccount?.name || "none"}`);
@@ -5416,13 +4233,8 @@ async function handleAccount(args) {
         error("API key is required.");
         return;
       }
-      const baseUrl = await input(
-        "Base URL:",
-        PROVIDERS[provider]().getConfig().baseUrl
-      );
-      const defaultModel = await modelSelection(
-        PROVIDERS[provider]().getModels()
-      );
+      const baseUrl = await input("Base URL:", PROVIDERS[provider]().getConfig().baseUrl);
+      const defaultModel = await modelSelection(PROVIDERS[provider]().getModels());
       const account = addAccount(name, provider, apiKey, baseUrl, defaultModel);
       success(`Account "${name}" added successfully!`);
       info(`Account ID: ${account.id}`);
@@ -5467,11 +4279,7 @@ async function handleAccount(args) {
         return;
       }
       section(`Edit Account: ${account.name}`);
-      const field = await select(
-        "What would you like to edit?",
-        ["name", "api-key", "group-id", "base-url", "done"],
-        4
-      );
+      const field = await select("What would you like to edit?", ["name", "api-key", "group-id", "base-url", "done"], 4);
       if (field === "done") {
         success("No changes made.");
         break;
@@ -5501,9 +4309,7 @@ async function handleAccount(args) {
           const currentGroupId = account.groupId || "(not set)";
           info(`Current GroupId: ${currentGroupId}`);
           if (account.provider === "minimax") {
-            info(
-              "GroupId is required for MiniMax usage tracking. Found in browser DevTools when visiting https://platform.minimax.io/user-center/payment/coding-plan"
-            );
+            info("GroupId is required for MiniMax usage tracking. Found in browser DevTools when visiting https://platform.minimax.io/user-center/payment/coding-plan");
           }
           const groupId = await input("New GroupId:", account.groupId || "");
           if (account.provider === "minimax" && !groupId) {
@@ -5511,7 +4317,7 @@ async function handleAccount(args) {
             return;
           }
           updateAccount(id, {
-            groupId: groupId || undefined,
+            groupId: groupId || undefined
           });
           success(`GroupId updated to "${groupId || "(not set)"}"`);
           break;
@@ -5588,19 +4394,14 @@ async function handleDashboard(args) {
         Enabled: config.dashboard.enabled ? "Yes" : "No",
         Port: config.dashboard.port.toString(),
         Host: config.dashboard.host,
-        Auth: config.dashboard.authToken
-          ? `***${config.dashboard.authToken.slice(-4)}`
-          : "Not set",
+        Auth: config.dashboard.authToken ? `***${config.dashboard.authToken.slice(-4)}` : "Not set"
       });
       break;
     }
     default: {
       const config = loadConfig();
       if (config.dashboard.enabled) {
-        const { startDashboard: startDashboard2 } =
-          await Promise.resolve().then(
-            () => (init_dashboard(), exports_dashboard)
-          );
+        const { startDashboard: startDashboard2 } = await Promise.resolve().then(() => (init_dashboard(), exports_dashboard));
         startDashboard2();
       } else {
         console.log(`
@@ -5626,40 +4427,27 @@ async function handleHooks(args) {
   const action = args[0];
   switch (action) {
     case "setup": {
-      const { handleHooksSetup: handleHooksSetup2 } =
-        await Promise.resolve().then(
-          () => (init_hooks_handler(), exports_hooks_handler)
-        );
+      const { handleHooksSetup: handleHooksSetup2 } = await Promise.resolve().then(() => (init_hooks_handler(), exports_hooks_handler));
       await handleHooksSetup2();
       break;
     }
     case "uninstall": {
-      const { handleHooksUninstall: handleHooksUninstall2 } =
-        await Promise.resolve().then(
-          () => (init_hooks_handler(), exports_hooks_handler)
-        );
+      const { handleHooksUninstall: handleHooksUninstall2 } = await Promise.resolve().then(() => (init_hooks_handler(), exports_hooks_handler));
       await handleHooksUninstall2();
       break;
     }
     case "status": {
-      const { handleHooksStatus: handleHooksStatus2 } =
-        await Promise.resolve().then(
-          () => (init_hooks_handler(), exports_hooks_handler)
-        );
+      const { handleHooksStatus: handleHooksStatus2 } = await Promise.resolve().then(() => (init_hooks_handler(), exports_hooks_handler));
       await handleHooksStatus2();
       break;
     }
     case "post-tool": {
-      const { default: PostTool2 } = await Promise.resolve().then(
-        () => (init_post_tool(), exports_post_tool)
-      );
+      const { default: PostTool2 } = await Promise.resolve().then(() => (init_post_tool(), exports_post_tool));
       await new PostTool2(["hooks", "post-tool", ...args.slice(1)]).run();
       break;
     }
     case "stop": {
-      const { default: HooksStop2 } = await Promise.resolve().then(
-        () => (init_stop(), exports_stop)
-      );
+      const { default: HooksStop2 } = await Promise.resolve().then(() => (init_stop(), exports_stop));
       await new HooksStop2(["hooks", "stop", ...args.slice(1)]).run();
       break;
     }
@@ -5707,24 +4495,19 @@ async function handleAlert(args) {
       const config = loadConfig();
       config.alerts.forEach((alert) => {
         const status = alert.enabled ? "enabled" : "disabled";
-        console.log(
-          `  ${alert.id}: ${alert.type} @ ${alert.threshold}% [${status}]`
-        );
+        console.log(`  ${alert.id}: ${alert.type} @ ${alert.threshold}% [${status}]`);
       });
       break;
     }
     case "add": {
       const type = await select("Alert type:", ["usage", "quota"]);
-      const threshold = Number.parseInt(
-        await input("Threshold (%):", "80"),
-        10
-      );
+      const threshold = Number.parseInt(await input("Threshold (%):", "80"), 10);
       const config = loadConfig();
       const alert = {
         id: `alert_${Date.now()}`,
         type,
         threshold,
-        enabled: true,
+        enabled: true
       };
       config.alerts.push(alert);
       saveConfig(config);
@@ -5778,9 +4561,7 @@ async function handleMcp(args) {
       servers.forEach((server) => {
         const status = server.enabled ? "●" : "○";
         const provider = server.provider || "all";
-        console.log(
-          `  ${status} ${server.name} [${provider}] ${server.enabled ? "" : "(disabled)"}`
-        );
+        console.log(`  ${status} ${server.name} [${provider}] ${server.enabled ? "" : "(disabled)"}`);
         console.log(`      ${server.command} ${server.args.join(" ")}`);
         if (server.description) {
           console.log(`      ${server.description}`);
@@ -5806,7 +4587,7 @@ async function handleMcp(args) {
       const description = await input("Description (optional):", "");
       addMcpServer(name, command, argsList, {
         description,
-        provider,
+        provider
       });
       success(`MCP server "${name}" added successfully!`);
       info(`Run 'cohe mcp enable ${name}' to enable it.`);
@@ -5858,15 +4639,10 @@ async function handleMcp(args) {
         return;
       }
       addPredefinedServers(provider);
-      const predefined =
-        provider === "zai" ? ZAI_MCP_SERVERS : MINIMAX_MCP_SERVERS;
+      const predefined = provider === "zai" ? ZAI_MCP_SERVERS : MINIMAX_MCP_SERVERS;
       const serverCount = Object.keys(predefined).length;
-      success(
-        `Added ${serverCount} predefined ${provider.toUpperCase()} MCP servers.`
-      );
-      info(
-        "Use 'cohe mcp list' to see them, then 'cohe mcp enable <name>' to enable."
-      );
+      success(`Added ${serverCount} predefined ${provider.toUpperCase()} MCP servers.`);
+      info("Use 'cohe mcp list' to see them, then 'cohe mcp enable <name>' to enable.");
       break;
     }
     case "export": {
@@ -5898,7 +4674,7 @@ async function handleMcp(args) {
       info(`Running: ${server.command} ${server.args.join(" ")}`);
       const child = spawn4(server.command, server.args, {
         env: { ...process.env, ...getMcpEnvForServer(name) },
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ["pipe", "pipe", "pipe"]
       });
       let stdout = "";
       let stderr = "";
@@ -6014,9 +4790,7 @@ async function handleVersion() {
   console.log(`COHE v${pkg.version}`);
 }
 async function handleCompare2(args) {
-  const { handleCompare: compareHandler } = await Promise.resolve().then(
-    () => (init_compare(), exports_compare)
-  );
+  const { handleCompare: compareHandler } = await Promise.resolve().then(() => (init_compare(), exports_compare));
   await compareHandler(args);
 }
 async function handleClaude(args) {
@@ -6025,7 +4799,7 @@ async function handleClaude(args) {
   let claudePath = null;
   try {
     claudePath = execSync("which claude 2>/dev/null", {
-      encoding: "utf-8",
+      encoding: "utf-8"
     }).trim();
   } catch {
     error("Claude CLI not found. Please install Claude Code first.");
@@ -6036,15 +4810,9 @@ async function handleClaude(args) {
     const accounts = listAccounts();
     if (accounts.length > 1) {
       const previousAccount = getActiveAccount();
-      const newAccount = config.rotation.crossProvider
-        ? await rotateAcrossProviders()
-        : previousAccount?.provider
-          ? rotateApiKey(previousAccount.provider)
-          : null;
+      const newAccount = config.rotation.crossProvider ? await rotateAcrossProviders() : previousAccount?.provider ? rotateApiKey(previousAccount.provider) : null;
       if (newAccount && newAccount.id !== previousAccount?.id) {
-        info(
-          `[auto-switch] ${previousAccount?.name || "none"} → ${newAccount.name} (${newAccount.provider})`
-        );
+        info(`[auto-switch] ${previousAccount?.name || "none"} → ${newAccount.name} (${newAccount.provider})`);
       }
     } else if (config.rotation.crossProvider) {
       const currentProvider = getActiveProvider();
@@ -6062,9 +4830,7 @@ async function handleClaude(args) {
     const legacyProvider = getActiveProvider();
     const legacyConfig = getProviderConfig(legacyProvider);
     if (!legacyConfig.apiKey) {
-      error(
-        "No accounts configured. Run 'cohe config' or 'cohe account add' first."
-      );
+      error("No accounts configured. Run 'cohe config' or 'cohe account add' first.");
       return;
     }
     const provider = PROVIDERS[legacyProvider]();
@@ -6073,14 +4839,14 @@ async function handleClaude(args) {
       ...process.env,
       ANTHROPIC_AUTH_TOKEN: providerConfig.apiKey,
       ANTHROPIC_BASE_URL: providerConfig.baseUrl,
-      API_TIMEOUT_MS: "3000000",
+      API_TIMEOUT_MS: "3000000"
     };
     if (legacyProvider === "minimax") {
       childEnv2.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
     }
     const child2 = spawn4(claudePath, args, {
       stdio: "inherit",
-      env: childEnv2,
+      env: childEnv2
     });
     child2.on("close", (code) => {
       process.exit(code ?? 0);
@@ -6091,14 +4857,14 @@ async function handleClaude(args) {
     ...process.env,
     ANTHROPIC_AUTH_TOKEN: activeAccount.apiKey,
     ANTHROPIC_BASE_URL: activeAccount.baseUrl,
-    API_TIMEOUT_MS: "3000000",
+    API_TIMEOUT_MS: "3000000"
   };
   if (activeAccount.provider === "minimax") {
     childEnv.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
   }
   const child = spawn4(claudePath, args, {
     stdio: "inherit",
-    env: childEnv,
+    env: childEnv
   });
   child.on("close", (code) => {
     process.exit(code ?? 0);
@@ -6114,9 +4880,7 @@ async function handleAuto(args) {
       const config = loadConfig();
       success("Auto-rotation enabled.");
       info(`Strategy: ${config.rotation.strategy}`);
-      info(
-        `Cross-provider: ${config.rotation.crossProvider ? "enabled" : "disabled"}`
-      );
+      info(`Cross-provider: ${config.rotation.crossProvider ? "enabled" : "disabled"}`);
       break;
     }
     case "disable": {
@@ -6131,14 +4895,12 @@ async function handleAuto(args) {
         Enabled: config.rotation.enabled ? "Yes" : "No",
         Strategy: config.rotation.strategy,
         "Cross-provider": config.rotation.crossProvider ? "Yes" : "No",
-        "Last rotation": config.rotation.lastRotation || "Never",
+        "Last rotation": config.rotation.lastRotation || "Never"
       });
       const activeAccount = getActiveAccount();
       if (activeAccount) {
         info("");
-        info(
-          `Active account: ${activeAccount.name} (${activeAccount.provider})`
-        );
+        info(`Active account: ${activeAccount.name} (${activeAccount.provider})`);
       }
       break;
     }
@@ -6180,12 +4942,12 @@ async function handleAuto(args) {
             DISABLE_ERROR_REPORTING: "1",
             CLAUDE_CODE_DEBUG: "1",
             CLAUDE_CODE_VERBOSE_LOGGING: "1",
-            CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1",
+            CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: "1"
           };
           settings.env = env;
           const glmPlugins = [
             "glm-plan-usage@zai-coding-plugins",
-            "glm-plan-bug@zai-coding-plugins",
+            "glm-plan-bug@zai-coding-plugins"
           ];
           if (currentAccount.provider === "zai") {
             if (!settings.enabledPlugins) {
@@ -6194,15 +4956,14 @@ async function handleAuto(args) {
             for (const plugin of glmPlugins) {
               settings.enabledPlugins[plugin] = true;
             }
-          } else if (
-            currentAccount.provider === "minimax" &&
-            settings.enabledPlugins
-          ) {
-            for (const plugin of glmPlugins) {
-              delete settings.enabledPlugins[plugin];
-            }
-            if (Object.keys(settings.enabledPlugins).length === 0) {
-              settings.enabledPlugins = undefined;
+          } else if (currentAccount.provider === "minimax") {
+            if (settings.enabledPlugins) {
+              for (const plugin of glmPlugins) {
+                delete settings.enabledPlugins[plugin];
+              }
+              if (Object.keys(settings.enabledPlugins).length === 0) {
+                settings.enabledPlugins = undefined;
+              }
             }
           }
           fs8.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
@@ -6267,7 +5028,7 @@ var init_commands = __esm(() => {
   init_prompts();
   PROVIDERS = {
     zai: () => zaiProvider,
-    minimax: () => minimaxProvider,
+    minimax: () => minimaxProvider
   };
 });
 
@@ -6298,7 +5059,7 @@ __export(exports_loader, {
   handleClaude: () => handleClaude,
   handleAuto: () => handleAuto,
   handleAlert: () => handleAlert,
-  handleAccount: () => handleAccount,
+  handleAccount: () => handleAccount
 });
 async function loadCommand(command, args) {
   const handler = COMMANDS[command];
@@ -6335,7 +5096,7 @@ var init_loader = __esm(() => {
     mcp: (args) => handleMcp(args ?? []),
     hooks: (args) => handleHooks(args ?? []),
     help: handleHelp,
-    version: handleVersion,
+    version: handleVersion
   };
 });
 
@@ -6344,22 +5105,14 @@ var CLIController = async () => {
   const args = process.argv.slice(2);
   const command = args[0] || "help";
   try {
-    const { loadCommand: loadCommand2 } = await Promise.resolve().then(
-      () => (init_loader(), exports_loader)
-    );
+    const { loadCommand: loadCommand2 } = await Promise.resolve().then(() => (init_loader(), exports_loader));
     await loadCommand2(command, args.slice(1));
   } catch (error2) {
-    if (
-      error2 instanceof Error &&
-      error2.message.includes("Cannot find module")
-    ) {
+    if (error2 instanceof Error && error2.message.includes("Cannot find module")) {
       console.error(`Unknown command: ${command}`);
       console.log('Run "cohe help" for available commands.');
     } else {
-      console.error(
-        "Error:",
-        error2 instanceof Error ? error2.message : String(error2)
-      );
+      console.error("Error:", error2 instanceof Error ? error2.message : String(error2));
     }
     process.exit(1);
   }

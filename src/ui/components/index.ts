@@ -9,4 +9,4 @@ export {
   Trace,
   Warning,
 } from "./status-badge.js";
-export { Table, TableRow } from "./Table.js";
+export { Table, TableRow } from "./Table.tsx";

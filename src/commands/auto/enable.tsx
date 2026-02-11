@@ -1,6 +1,7 @@
 import { Args, Flags } from "@oclif/core";
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
+import type { RotationStrategy } from "../../config/accounts-config.js";
+import { configureRotation, loadConfig } from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Info, Success } from "../../ui/index.js";
 
@@ -28,13 +29,11 @@ export default class AutoEnable extends BaseCommand<typeof AutoEnable> {
   };
 
   async run(): Promise<void> {
-    const strategy = this.args.strategy as
-      | accountsConfig.RotationStrategy
-      | undefined;
+    const strategy = this.args.strategy as RotationStrategy | undefined;
     const crossProvider = this.flags["cross-provider"];
 
-    accountsConfig.configureRotation(true, strategy, crossProvider);
-    const config = accountsConfig.loadConfig();
+    configureRotation(true, strategy, crossProvider);
+    const config = loadConfig();
 
     await this.renderApp(
       <Box flexDirection="column">

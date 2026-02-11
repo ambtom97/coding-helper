@@ -208,8 +208,9 @@ export async function handleUsage(verbose = false): Promise<void> {
           groupId: account.groupId,
         }),
       `${account.name} usage fetch`,
-      // Retry if usage data is invalid (limit <= 0)
-      (result) => result.limit > 0
+      // Retry if usage data is invalid (limit <= 0 AND no valid percentage)
+      // ZAI may return limit=0 with only percentage for TOKENS_LIMIT
+      (result) => result.limit > 0 || result.percentUsed > 0
     );
 
     const isActiveModel = config.activeModelProviderId === account.id;
@@ -242,7 +243,8 @@ export async function handleUsage(verbose = false): Promise<void> {
       console.log("     ⚠️  Missing groupId - usage data may be incomplete");
     }
 
-    if (usage && usage.limit > 0) {
+    // Show usage data if we have limit > 0 or valid percentage (for ZAI TOKENS_LIMIT)
+    if (usage && (usage.limit > 0 || usage.percentUsed > 0)) {
       // For ZAI, show model and MCP usage separately
       if (account.provider === "zai" && usage.modelUsage && usage.mcpUsage) {
         const modelMark = isActiveModel ? "* " : "  ";

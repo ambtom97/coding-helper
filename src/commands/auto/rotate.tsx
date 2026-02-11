@@ -1,6 +1,6 @@
 import { Flags } from "@oclif/core";
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
+import { rotateAcrossProviders } from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Error as ErrorBadge, Success } from "../../ui/index.js";
 
@@ -23,7 +23,7 @@ export default class AutoRotate extends BaseCommand<typeof AutoRotate> {
   };
 
   async run(): Promise<void> {
-    const newAccount = await accountsConfig.rotateAcrossProviders();
+    const newAccount = await rotateAcrossProviders();
 
     if (this.flags.json) {
       if (newAccount) {

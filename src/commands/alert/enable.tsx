@@ -1,6 +1,5 @@
 import { Args } from "@oclif/core";
 import { Box } from "ink";
-import * as accountsConfig from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Success } from "../../ui/index.js";
 

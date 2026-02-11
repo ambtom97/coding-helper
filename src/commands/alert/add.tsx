@@ -1,7 +1,7 @@
 import { Select, TextInput } from "@inkjs/ui";
 import { Box, Text, useApp } from "ink";
 import { useState } from "react";
-import * as accountsConfig from "../../config/accounts-config.js";
+import { loadConfig, saveConfig } from "../../config/accounts-config.js";
 import { BaseCommand } from "../../oclif/base.tsx";
 import { Section, Success } from "../../ui/index.js";
 
@@ -36,7 +36,7 @@ function AlertAddUI(): React.ReactElement {
     const thresh = Number.parseInt(value, 10) || 80;
     setThreshold(thresh);
 
-    const config = accountsConfig.loadConfig();
+    const config = loadConfig();
     const alert = {
       id: `alert_${Date.now()}`,
       type,
@@ -44,7 +44,7 @@ function AlertAddUI(): React.ReactElement {
       enabled: true,
     };
     config.alerts.push(alert);
-    accountsConfig.saveConfig(config);
+    saveConfig(config);
 
     setStep("done");
     setTimeout(() => exit(), 500);

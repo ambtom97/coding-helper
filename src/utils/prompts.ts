@@ -73,12 +73,10 @@ export async function checkbox<T extends string>(
   return result;
 }
 
-export async function providerSelection(): Promise<"zai" | "minimax"> {
+export function providerSelection(): Promise<"zai" | "minimax"> {
   return select("Select API provider:", ["zai", "minimax"] as const, 0);
 }
 
-export async function modelSelection(
-  models: readonly string[]
-): Promise<string> {
+export function modelSelection(models: readonly string[]): Promise<string> {
   return select("Select model:", models, 0);
 }

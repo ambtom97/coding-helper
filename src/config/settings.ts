@@ -38,7 +38,7 @@ export function getConfigPath(): string {
   return CONFIG_PATH;
 }
 
-export function loadConfig(): ImBIOSConfig {
+export function loadConfig(): COHEConfig {
   try {
     if (fs.existsSync(CONFIG_PATH)) {
       const content = fs.readFileSync(CONFIG_PATH, "utf-8");
@@ -50,7 +50,7 @@ export function loadConfig(): ImBIOSConfig {
   return { provider: "zai" };
 }
 
-export function saveConfig(config: ImBIOSConfig): void {
+export function saveConfig(config: COHEConfig): void {
   const configDir = getConfigDir();
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });

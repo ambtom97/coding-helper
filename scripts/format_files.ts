@@ -1,21 +1,10 @@
 #!/usr/bin/env bun
-#===============================================================================
-#
-Global;
-Multi - Language;
-Code;
-Formatter (TypeScript Version)
-#
-Primary: Biome(JS / TS / JSX / JSON / CSS / GraphQL);
-#
-Fallbacks: Language - specific;
-formatters;
-for other languages
-#===============================================================================
 
-
-
-
+// Global Multi-Language Code Formatter (TypeScript Version)
+//
+// Primary: Biome (JS / TS / JSX / JSON / CSS / GraphQL)
+//
+// Fallbacks: Language-specific formatters for other languages
 
 // Colors
 const colors = {

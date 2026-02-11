@@ -1,3 +1,4 @@
+import { Flags } from "@oclif/core";
 import { BaseCommand } from "../oclif/base.tsx";
 import { handleUsage } from "./index.js";
 
@@ -9,15 +10,14 @@ export default class Usage extends BaseCommand<typeof Usage> {
   ];
 
   static flags = {
-    verbose: {
-      type: "boolean",
+    verbose: Flags.boolean({
       description: "Show detailed usage information",
       default: false,
-    },
+    }),
   };
 
   async run(): Promise<void> {
     const { flags } = await this.parse(Usage);
-    await handleUsage(flags.verbose as boolean);
+    await handleUsage(flags.verbose);
   }
 }
